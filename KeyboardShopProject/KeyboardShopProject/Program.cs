@@ -1,11 +1,18 @@
-var builder = WebApplication.CreateBuilder(args);
+using Keyboard.ShopProject.ExtensionMethods;
+using Serilog;
 
+var logger = new LoggerConfiguration().Enrich.FromLogContext().WriteTo.Console().CreateLogger();
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Logging.AddSerilog(logger);
 // Add services to the container.
 
+builder.Services.RegisterRepositories().RegisterServices();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 
