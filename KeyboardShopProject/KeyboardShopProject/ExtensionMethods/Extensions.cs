@@ -18,7 +18,6 @@ namespace Keyboard.ShopProject.ExtensionMethods
         public static IServiceCollection RegisterServices(this IServiceCollection services)
         {
             services.AddSingleton<IKeyboardService, KeyboardServices>();
-            services.AddSingleton<IClientService, ClientService>();
             services.AddSingleton<IOrderServices, OrderServices>();
             return services;
         }
