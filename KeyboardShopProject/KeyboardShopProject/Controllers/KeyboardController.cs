@@ -1,5 +1,7 @@
-﻿using Keyboard.BL.Interfaces;
+﻿using FluentValidation;
+using Keyboard.BL.Interfaces;
 using Keyboard.Models.Models;
+using Keyboard.Models.Requests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KeyboardShopProject.Controllers
@@ -7,10 +9,12 @@ namespace KeyboardShopProject.Controllers
     public class KeyboardController : Controller
     {
         private readonly IKeyboardService _services;
+        private readonly IValidator<AddKeyboardRequest> _validator;
 
-        public KeyboardController(IKeyboardService services)
+        public KeyboardController(IKeyboardService services, IValidator<AddKeyboardRequest> validator)
         {
             _services = services;
+            _validator = validator;
         }
 
         [HttpGet(nameof(GetAllKeyboards))]
@@ -26,13 +30,15 @@ namespace KeyboardShopProject.Controllers
         }
 
         [HttpPost(nameof(AddKeyboard))]
-        public async Task<IActionResult> AddKeyboard([FromBody] KeyboardModel keyboard)
+        public async Task<IActionResult> AddKeyboard([FromBody] AddKeyboardRequest keyboard)
         {
+
+            var re = await _validator.ValidateAsync(keyboard);
             return Ok(await _services.CreateKeyboard(keyboard));
         }
 
         [HttpPut(nameof(UpdateKeyboard))]
-        public async Task<IActionResult> UpdateKeyboard([FromBody] KeyboardModel keyboard)
+        public async Task<IActionResult> UpdateKeyboard([FromBody] UpdateKeyboardRequest keyboard)
         {
             return Ok(await _services.UpdateKeyboard(keyboard));
         }
