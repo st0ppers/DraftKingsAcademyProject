@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using AutoMapper;
-using AutoMapper.Configuration.Annotations;
 using Keyboard.BL.Interfaces;
 using Keyboard.DL.Interfaces;
 using Keyboard.Models.Models;
@@ -31,15 +30,15 @@ namespace Keyboard.BL.Services
 
         public async Task<KeyboardResponse> CreateKeyboard(AddKeyboardRequest request)
         {
-            //if (await _repository.GetByModel(request.Model) != null)
-            //{
-            //    return new KeyboardResponse()
-            //    {
-            //        Message = "That keyboard model already exists",
-            //        StatusCode = HttpStatusCode.NotFound,
+            if (await _repository.GetByModel(request.Model) != null)
+            {
+                return new KeyboardResponse()
+                {
+                    Message = "That keyboard model already exists",
+                    StatusCode = HttpStatusCode.NotFound,
 
-            //    };
-            //}
+                };
+            }
 
             var keyboard = _mapper.Map<KeyboardModel>(request);
             var result = await _repository.CreateKeyboard(keyboard);

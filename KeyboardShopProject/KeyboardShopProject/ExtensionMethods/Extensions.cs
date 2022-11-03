@@ -10,12 +10,14 @@ namespace Keyboard.ShopProject.ExtensionMethods
         public static IServiceCollection RegisterRepositories(this IServiceCollection services)
         {
             services.AddSingleton<IKeyboardSqlRepository,KeyboardSqlRepository>();
+            services.AddSingleton<IClientSqlRepository, ClientSqlRepository>();
             return services;
         }
 
         public static IServiceCollection RegisterServices(this IServiceCollection services)
         {
             services.AddSingleton<IKeyboardService, KeyboardServices>();
+            services.AddSingleton<IClientService,ClientService>();
             return services;
         }
     }
