@@ -31,7 +31,7 @@ namespace Keyboard.ShopProject.Middlewear
                         break;
                     case KeyNotFoundException e:
                         response.StatusCode = (int)HttpStatusCode.NotFound;
-                        _logger.LogError($"Error with message {e.Message}");
+                        _logger.LogError($"Error {context.Request.Host.Port.Value}  with message {e.Message}");
                         break;
                     default: 
                         response.StatusCode = (int)HttpStatusCode.InternalServerError;
