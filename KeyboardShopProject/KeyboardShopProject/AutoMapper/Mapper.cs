@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Keyboard.Models.Models;
 using Keyboard.Models.Requests;
-using Keyboard.Models.Responses;
 
 namespace Keyboard.ShopProject.AutoMapper
 {
@@ -13,6 +12,8 @@ namespace Keyboard.ShopProject.AutoMapper
             CreateMap<UpdateKeyboardRequest, KeyboardModel>();
             CreateMap<AddClientRequest, ClientModel>();
             CreateMap<UpdateClientRequest, ClientModel>();
+            CreateMap<AddOrderRequest, OrderModel>();
+            CreateMap<UpdateOrderRequest, OrderModel>();
         }
     }
 }
