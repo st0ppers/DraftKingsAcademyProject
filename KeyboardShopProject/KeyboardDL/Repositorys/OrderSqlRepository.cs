@@ -35,7 +35,6 @@ namespace Keyboard.DL.Repositorys
                     throw;
                 }
             }
-
         }
 
         public async Task<OrderModel> GetById(int id)
@@ -62,9 +61,10 @@ namespace Keyboard.DL.Repositorys
             {
                 await using (var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
                 {
-                    var query = "INSERT INTO [Order] (KeyboardID,ClientID,TotalPrice,Date) VALUES (@KeyboardID,@ClientID,@TotalPrice,@Date)";
+                    var query = "INSERT INTO [Order] output INSERTED.* VALUES (@KeyboardID,@ClientID,@TotalPrice,@Date)";
                     await conn.OpenAsync();
-                    return await conn.QueryFirstOrDefaultAsync<OrderModel>(query, order);
+                    var result = await conn.QueryFirstOrDefaultAsync<OrderModel>(query, order);
+                    return result;
                 }
             }
             catch (Exception e)

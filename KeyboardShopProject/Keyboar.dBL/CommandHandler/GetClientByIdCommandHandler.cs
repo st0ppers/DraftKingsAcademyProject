@@ -1,11 +1,12 @@
-﻿using Keyboard.DL.Interfaces;
+﻿using System.Net;
+using Keyboard.DL.Interfaces;
 using Keyboard.Models.Commands;
-using Keyboard.Models.Models;
+using Keyboard.Models.Responses;
 using MediatR;
 
 namespace Keyboard.BL.CommandHandler
 {
-    public class GetClientByIdCommandHandler : IRequestHandler<GetClientByIdCommand, ClientModel>
+    public class GetClientByIdCommandHandler : IRequestHandler<GetClientByIdCommand, ClientResponse>
     {
         private readonly IClientSqlRepository _clientSqlRepository;
 
@@ -14,9 +15,23 @@ namespace Keyboard.BL.CommandHandler
             _clientSqlRepository = clientSqlRepository;
         }
 
-        public async Task<ClientModel> Handle(GetClientByIdCommand request, CancellationToken cancellationToken)
+        public async Task<ClientResponse> Handle(GetClientByIdCommand request, CancellationToken cancellationToken)
         {
-            return await _clientSqlRepository.GetById(request.id);
+            if (await _clientSqlRepository.GetById(request.id) == null)
+            {
+                return new ClientResponse()
+                {
+                    Message = "Client with that Id doesn't exist",
+                    StatusCode = HttpStatusCode.NotFound,
+                };
+            }
+
+            var client = await _clientSqlRepository.GetById(request.id);
+            return new ClientResponse()
+            {
+                StatusCode = HttpStatusCode.OK,
+                Client = client
+            };
         }
     }
 }

@@ -23,11 +23,34 @@ namespace Keyboard.BL.Services
             return await _repository.GetAllKeyboards();
         }
 
-        public async Task<KeyboardModel> GetById(int id)
+        public async Task<KeyboardResponse> GetById(int id)
         {
-            return await _repository.GetById(id);
+            if (await _repository.GetById(id) == null)
+            {
+                return new KeyboardResponse()
+                {
+                    Message = "Keyboard with that id doesn't exist",
+                    StatusCode = HttpStatusCode.NotFound,
+                };
+            }
+
+            var keyboard = await _repository.GetById(id);
+            return new KeyboardResponse()
+            {
+                Keyboard = keyboard,
+                StatusCode = HttpStatusCode.OK
+            };
         }
 
+        public async Task<KeyboardResponse> GetByModel(string name)
+        {
+            var keyboard = await _repository.GetByModel(name);
+            return new KeyboardResponse()
+            {
+                StatusCode = HttpStatusCode.OK,
+                Keyboard = keyboard
+            };
+        }
         public async Task<KeyboardResponse> CreateKeyboard(AddKeyboardRequest request)
         {
             if (await _repository.GetByModel(request.Model) != null)
@@ -36,7 +59,6 @@ namespace Keyboard.BL.Services
                 {
                     Message = "That keyboard model already exists",
                     StatusCode = HttpStatusCode.NotFound,
-
                 };
             }
 
