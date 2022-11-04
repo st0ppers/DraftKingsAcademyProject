@@ -78,7 +78,7 @@ namespace Keyboard.DL.Repositorys
             {
                 try
                 {
-                    var query = "INSERT INTO Client (FullName,Address) VALUES (@FullName,@Address)";
+                    var query = "INSERT INTO Client (FullName,Address,Age) VALUES (@FullName,@Address,@Age)";
                     conn.Open();
                     await conn.QueryFirstOrDefaultAsync<ClientModel>(query, client);
                     return await GetByFullName(client.FullName);
@@ -97,7 +97,7 @@ namespace Keyboard.DL.Repositorys
             {
                 try
                 {
-                    var query = "UPDATE Client SET FullName=@FullName,Address=@Address WHERE ClientID=@ClientID";
+                    var query = "UPDATE Client SET FullName=@FullName,Address=@Address,Age=@Age WHERE ClientID=@ClientID";
                     conn.Open();
                     await conn.QueryFirstOrDefaultAsync<KeyboardModel>(query, client);
                     return await GetById(client.ClientID);

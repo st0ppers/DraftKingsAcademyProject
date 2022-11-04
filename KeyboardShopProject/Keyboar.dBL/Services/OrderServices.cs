@@ -5,41 +5,112 @@ using Keyboard.DL.Interfaces;
 using Keyboard.Models.Models;
 using Keyboard.Models.Requests;
 using Keyboard.Models.Responses;
-using Microsoft.Extensions.Logging;
 
 namespace Keyboard.BL.Services
 {
     public class OrderServices : IOrderServices
     {
         private readonly IOrderSqlRepository _orderSqlRepository;
-        private readonly ILogger<OrderServices> _logger;
+        private readonly IKeyboardSqlRepository _keyboardSqlRepository;
+        private readonly IClientSqlRepository _clientSqlRepository;
         private readonly IMapper _mapper;
 
-        public OrderServices(IOrderSqlRepository orderSqlRepository, ILogger<OrderServices> logger, IMapper mapper)
+        public OrderServices(IOrderSqlRepository orderSqlRepository, IMapper mapper, IKeyboardSqlRepository keyboardSqlRepository, IClientSqlRepository clientSqlRepository)
         {
             _orderSqlRepository = orderSqlRepository;
-            _logger = logger;
             _mapper = mapper;
+            _keyboardSqlRepository = keyboardSqlRepository;
+            _clientSqlRepository = clientSqlRepository;
         }
-
 
         public async Task<IEnumerable<OrderModel>> GetAllOrders()
         {
             return await _orderSqlRepository.GetAllOrders();
         }
 
-        public async Task<OrderModel> GetById(int id)
+        public async Task<OrderResponse> GetById(int id)
         {
-            return await _orderSqlRepository.GetById(id);
+            if (await _orderSqlRepository.GetById(id) == null)
+            {
+                return new OrderResponse()
+                {
+                    Message = "Order with that id does not exist",
+                    StatusCode = HttpStatusCode.NotFound
+                };
+            }
+
+            var order = await _orderSqlRepository.GetById(id);
+            return new OrderResponse()
+            {
+                OrderID = order.OrderID,
+                DateOfOrder = order.Date,
+                TotalPrice = order.TotalPrice,
+                StatusCode = HttpStatusCode.OK,
+                Keyboard = await _keyboardSqlRepository.GetById(order.KeyboardID),
+                Client = await _clientSqlRepository.GetById(order.ClientID),
+            };
         }
 
         public async Task<OrderResponse> CreateOrder(AddOrderRequest request)
         {
-            throw new NotImplementedException();
+            var keyboard = await _keyboardSqlRepository.GetById(request.KeyboardID);
+            var client = await _clientSqlRepository.GetById(request.ClientID);
+            if (keyboard == null)
+            {
+                return new OrderResponse()
+                {
+                    Message = "Keyboard with that Id doesn't exist",
+                    StatusCode = HttpStatusCode.NotFound,
+                };
+            }
+
+            if (client == null)
+            {
+                return new OrderResponse()
+                {
+                    Message = "Client with that Id doesn't exist",
+                    StatusCode = HttpStatusCode.NotFound,
+                };
+            }
+
+            var order = _mapper.Map<OrderModel>(request);
+            order.TotalPrice = keyboard.Price;
+            var result = await _orderSqlRepository.CreateOrder(order);
+
+            return new OrderResponse()
+            {
+                StatusCode = HttpStatusCode.Created,
+                Message = $"Successfully create order with id {result.OrderID}",
+                OrderID = result.OrderID,
+                DateOfOrder = result.Date,
+                TotalPrice = result.TotalPrice,
+                Client = client,
+                Keyboard = keyboard
+            };
         }
 
         public async Task<OrderResponse> UpdateOrder(UpdateOrderRequest request)
         {
+            var keyboard = await _keyboardSqlRepository.GetById(request.KeyboardID);
+            var client = await _clientSqlRepository.GetById(request.ClientID);
+            if (keyboard == null)
+            {
+                return new OrderResponse()
+                {
+                    Message = "Keyboard with that Id doesn't exist",
+                    StatusCode = HttpStatusCode.NotFound,
+                };
+            }
+
+            if (client == null)
+            {
+                return new OrderResponse()
+                {
+                    Message = "Client with that Id doesn't exist",
+                    StatusCode = HttpStatusCode.NotFound,
+                };
+            }
+
             if (await _orderSqlRepository.GetById(request.OrderID) == null)
             {
                 return new OrderResponse()
@@ -50,13 +121,18 @@ namespace Keyboard.BL.Services
             }
 
             var order = _mapper.Map<OrderModel>(request);
+            order.TotalPrice = keyboard.Price;
             var result = await _orderSqlRepository.UpdateOrder(order);
 
             return new OrderResponse()
             {
                 Message = $"Successfully updated order with id {result.OrderID}",
                 StatusCode = HttpStatusCode.OK,
-                Order = result
+                OrderID = result.OrderID,
+                DateOfOrder = result.Date,
+                TotalPrice = result.TotalPrice,
+                Client = client,
+                Keyboard = keyboard
             };
         }
 
@@ -76,7 +152,11 @@ namespace Keyboard.BL.Services
             {
                 Message = $"Successfully deleted order with id {order.OrderID}",
                 StatusCode = HttpStatusCode.NoContent,
-                Order = order
+                OrderID = order.OrderID,
+                DateOfOrder = order.Date,
+                TotalPrice = order.TotalPrice,
+                Client = await _clientSqlRepository.GetById(order.ClientID),
+                Keyboard = await _keyboardSqlRepository.GetById(order.KeyboardID)
             };
         }
     }

@@ -1,10 +1,11 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using KafkaServices.KafkaSettings;
 using Keyboard.BL.CommandHandler;
 using Keyboard.ShopProject.CustomHealthChecks;
 using Keyboard.ShopProject.ExtensionMethods;
 using Keyboard.ShopProject.HealthChecks;
-using Keyboard.ShopProject.Middlewear;
+using Keyboard.ShopProject.Middleware;
 using MediatR;
 using Serilog;
 
@@ -13,16 +14,16 @@ var logger = new LoggerConfiguration().Enrich.FromLogContext().WriteTo.Console()
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddSerilog(logger);
-// Add services to the container.
 
 builder.Services.RegisterRepositories().RegisterServices().AddAutoMapper(typeof(Program));
 
 builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
 
+//optionsMonitor
+builder.Services.Configure<KafkaSettingsForKeyboard>(builder.Configuration.GetSection(nameof(KafkaSettingsForKeyboard)));
 //HealthCheck
 builder.Services.AddHealthChecks().AddCheck<SqlHealthCheck>("SQL Server");
-
 
 builder.Services.AddMediatR(typeof(CreaterClientCommandHandler).Assembly);
 
@@ -37,7 +38,6 @@ var app = builder.Build();
 app.RegisterHealthCheck();
 app.MapHealthChecks("/healthz");
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -48,7 +48,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.UseMiddleware<ErrorHandlerMiddleWear>();
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
 

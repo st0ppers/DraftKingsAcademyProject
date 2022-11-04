@@ -37,7 +37,6 @@ namespace Keyboard.ShopProject.Controllers
             {
                 return NotFound(result);
             }
-
             return Ok(result.Client);
         }
 
@@ -49,7 +48,6 @@ namespace Keyboard.ShopProject.Controllers
             {
                 return NotFound(result);
             }
-
             return Ok(result.Client);
         }
 
@@ -57,7 +55,6 @@ namespace Keyboard.ShopProject.Controllers
         public async Task<IActionResult> DeleteClient(int id)
         {
             var result = await _mediator.Send(new DeleteClientCommand(id));
-
             return Ok(result);
         }
     }

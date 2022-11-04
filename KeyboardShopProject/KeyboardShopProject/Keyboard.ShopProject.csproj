@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\KafkaServices\KafkaServices.csproj" />
     <ProjectReference Include="..\Keyboar.dBL\Keyboard.BL.csproj" />
   </ItemGroup>
 

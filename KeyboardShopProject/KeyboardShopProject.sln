@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keyboard.ShopProject", "KeyboardShopProject\Keyboard.ShopProject.csproj", "{E7EC27B6-7262-4873-AF57-7B641075D86C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keyboard.ShopProject", "KeyboardShopProject\Keyboard.ShopProject.csproj", "{E7EC27B6-7262-4873-AF57-7B641075D86C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keyboard.DL", "KeyboardDL\Keyboard.DL.csproj", "{82BC75E1-287A-4475-AE64-B5E0AB74BAE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keyboard.DL", "KeyboardDL\Keyboard.DL.csproj", "{82BC75E1-287A-4475-AE64-B5E0AB74BAE8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keyboard.Models", "KeyboardModels\Keyboard.Models.csproj", "{76FA5755-12A1-426A-8F21-F3B92941C9C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keyboard.Models", "KeyboardModels\Keyboard.Models.csproj", "{76FA5755-12A1-426A-8F21-F3B92941C9C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keyboard.BL", "Keyboar.dBL\Keyboard.BL.csproj", "{FBB8E640-2DD5-4652-BA7E-39E9D151B979}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keyboard.BL", "Keyboar.dBL\Keyboard.BL.csproj", "{FBB8E640-2DD5-4652-BA7E-39E9D151B979}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KafkaServices", "KafkaServices\KafkaServices.csproj", "{DFE13A8F-D234-4A84-9922-D2F204DCF36E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{FBB8E640-2DD5-4652-BA7E-39E9D151B979}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FBB8E640-2DD5-4652-BA7E-39E9D151B979}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FBB8E640-2DD5-4652-BA7E-39E9D151B979}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFE13A8F-D234-4A84-9922-D2F204DCF36E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFE13A8F-D234-4A84-9922-D2F204DCF36E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFE13A8F-D234-4A84-9922-D2F204DCF36E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFE13A8F-D234-4A84-9922-D2F204DCF36E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

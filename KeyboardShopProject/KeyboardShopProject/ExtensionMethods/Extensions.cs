@@ -1,7 +1,9 @@
-﻿using Keyboard.BL.Interfaces;
+﻿using KafkaServices.Services;
+using Keyboard.BL.Interfaces;
 using Keyboard.BL.Services;
 using Keyboard.DL.Interfaces;
 using Keyboard.DL.Repositorys;
+using Keyboard.Models.Requests;
 
 namespace Keyboard.ShopProject.ExtensionMethods
 {
@@ -19,6 +21,7 @@ namespace Keyboard.ShopProject.ExtensionMethods
         {
             services.AddSingleton<IKeyboardService, KeyboardServices>();
             services.AddSingleton<IOrderServices, OrderServices>();
+            services.AddSingleton<KafkaKeyboardProducer<int, AddKeyboardRequest>>();
             return services;
         }
     }
