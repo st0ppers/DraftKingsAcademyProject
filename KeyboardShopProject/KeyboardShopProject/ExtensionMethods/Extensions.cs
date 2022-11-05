@@ -22,6 +22,8 @@ namespace Keyboard.ShopProject.ExtensionMethods
             services.AddSingleton<IKeyboardService, KeyboardServices>();
             services.AddSingleton<IOrderServices, OrderServices>();
             services.AddSingleton<KafkaKeyboardProducer<int, AddKeyboardRequest>>();
+            services.AddSingleton<KafkaClientProducer<int, AddClientRequest>>();
+            services.AddSingleton<KafkaOrderProducer<int, AddOrderRequest>>();
             return services;
         }
     }

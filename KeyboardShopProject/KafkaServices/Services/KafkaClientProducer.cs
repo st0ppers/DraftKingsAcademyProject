@@ -5,12 +5,12 @@ using Microsoft.Extensions.Options;
 
 namespace KafkaServices.Services
 {
-    public class KafkaKeyboardProducer<TKey, TValue>
+    public class KafkaClientProducer<TKey, TValue>
     {
         private readonly ProducerConfig _config;
-        private readonly IOptionsMonitor<KafkaSettingsForKeyboard> _kafkaSettings;
+        private readonly IOptionsMonitor<KafkaSettingsForClient> _kafkaSettings;
 
-        public KafkaKeyboardProducer(IOptionsMonitor<KafkaSettingsForKeyboard> kafkaSettings)
+        public KafkaClientProducer(IOptionsMonitor<KafkaSettingsForClient> kafkaSettings)
         {
             _kafkaSettings = kafkaSettings;
             _config = new ProducerConfig()
@@ -18,7 +18,6 @@ namespace KafkaServices.Services
                 BootstrapServers = _kafkaSettings.CurrentValue.BootstrapServers
             };
         }
-
         public async Task Produce(TKey key, TValue value)
         {
             var producer = new ProducerBuilder<TKey, TValue>(_config).SetKeySerializer(new MsgPackSerializer<TKey>())

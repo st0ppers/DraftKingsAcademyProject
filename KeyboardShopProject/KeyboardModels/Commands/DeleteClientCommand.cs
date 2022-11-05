@@ -1,5 +1,4 @@
-﻿using Keyboard.Models.Models;
-using Keyboard.Models.Responses;
+﻿using Keyboard.Models.Responses;
 using MediatR;
 
 namespace Keyboard.Models.Commands
