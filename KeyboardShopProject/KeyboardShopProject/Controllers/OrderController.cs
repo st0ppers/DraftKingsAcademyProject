@@ -1,5 +1,8 @@
-﻿using Keyboard.BL.Interfaces;
+﻿using System.Net;
+using KafkaServices.Services;
+using Keyboard.BL.Interfaces;
 using Keyboard.Models.Requests;
+using Keyboard.Models.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Keyboard.ShopProject.Controllers
@@ -9,10 +12,13 @@ namespace Keyboard.ShopProject.Controllers
     public class OrderController : Controller
     {
         private readonly IOrderServices _orderServices;
+        private readonly KafkaOrderProducer<int, AddOrderRequest> _kafkaProducer;
 
-        public OrderController(IOrderServices orderServices)
+
+        public OrderController(IOrderServices orderServices, KafkaOrderProducer<int, AddOrderRequest> kafkaProducer)
         {
             _orderServices = orderServices;
+            _kafkaProducer = kafkaProducer;
         }
 
         [HttpGet(nameof(GetAllOrders))]
@@ -24,25 +30,41 @@ namespace Keyboard.ShopProject.Controllers
         [HttpGet(nameof(GetOrderById))]
         public async Task<IActionResult> GetOrderById(int id)
         {
-            return Ok(await _orderServices.GetById(id));
+            var response = await _orderServices.GetById(id);
+            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
         }
 
         [HttpPost(nameof(CreateOrder))]
         public async Task<IActionResult> CreateOrder([FromBody] AddOrderRequest request)
         {
-            return Ok(await _orderServices.CreateOrder(request));
+            var response = await _orderServices.CreateOrder(request);
+            await _kafkaProducer.Produce(response.OrderID, request);
+            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
         }
 
         [HttpPut(nameof(UpdateOrder))]
         public async Task<IActionResult> UpdateOrder([FromBody] UpdateOrderRequest request)
         {
-            return Ok(await _orderServices.UpdateOrder(request));
+            var response = await _orderServices.UpdateOrder(request);
+            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
         }
 
         [HttpDelete(nameof(DeleteOrder))]
         public async Task<IActionResult> DeleteOrder(int id)
         {
-            return Ok(await _orderServices.DeleteOrder(id));
+            var response = await _orderServices.DeleteOrder(id);
+            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
+        }
+
+        [HttpOptions]
+        public IActionResult CheckIfStatusCodeIsNotFound(HttpStatusCode code, OrderResponse response)
+        {
+            if (code == HttpStatusCode.NotFound)
+            {
+                return NotFound(response);
+            }
+
+            return Ok(response);
         }
     }
 }

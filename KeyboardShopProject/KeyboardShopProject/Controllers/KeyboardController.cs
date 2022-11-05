@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using KafkaServices.Services;
 using Keyboard.BL.Interfaces;
-using Keyboard.Models.Models;
 using Keyboard.Models.Requests;
+using Keyboard.Models.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Keyboard.ShopProject.Controllers
@@ -30,43 +30,38 @@ namespace Keyboard.ShopProject.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var response = await _services.GetById(id);
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
         }
 
         [HttpPost(nameof(AddKeyboard))]
         public async Task<IActionResult> AddKeyboard([FromBody] AddKeyboardRequest request)
         {
-            await _services.CreateKeyboard(request);
-            var keyboard = await _services.GetByModel(request.Model);
-            await _kafkaProducer.Produce(keyboard.Keyboard.KeyboardID, request);
-
-            return Ok(keyboard);
+            var response = await _services.CreateKeyboard(request);
+            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
         }
 
         [HttpPut(nameof(UpdateKeyboard))]
-        public async Task<IActionResult> UpdateKeyboard([FromBody] UpdateKeyboardRequest keyboard)
+        public async Task<IActionResult> UpdateKeyboard([FromBody] UpdateKeyboardRequest request)
         {
-            return Ok(await _services.UpdateKeyboard(keyboard));
+            var response = await _services.UpdateKeyboard(request);
+            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
         }
 
         [HttpDelete(nameof(DeleteKeyboard))]
         public async Task<IActionResult> DeleteKeyboard(int id)
         {
-            return Ok(await _services.DeleteKeyboard(id));
+            var response = await _services.DeleteKeyboard(id);
+            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
         }
+        [HttpOptions]
+        public IActionResult CheckIfStatusCodeIsNotFound(HttpStatusCode code, KeyboardResponse response)
+        {
+            if (code == HttpStatusCode.NotFound)
+            {
+                return NotFound(response);
+            }
 
-        //public IActionResult CheckIfStatusCodeIsNotFound(HttpStatusCode code,)
-        //{
-        //    if (code == HttpStatusCode.NotFound)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok();
-        //}
+            return Ok(response);
+        }
     }
 }

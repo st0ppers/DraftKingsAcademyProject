@@ -18,22 +18,12 @@ namespace Keyboard.BL.CommandHandler
         public async Task<ClientResponse> Handle(DeleteClientCommand request, CancellationToken cancellationToken)
         {
 
-            if (request.id <= 0)
-            {
-                return new ClientResponse()
-                {
-                    Message = "Enter a valid id",
-                    StatusCode = HttpStatusCode.NotFound,
-                };
-            }
-
             if (await _clientSqlRepository.GetById(request.id) == null)
             {
                 return new ClientResponse()
                 {
                     StatusCode = HttpStatusCode.NotFound,
                     Message = "Client with that id doesn't exist",
-
                 };
             }
 

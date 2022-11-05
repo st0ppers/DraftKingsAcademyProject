@@ -5,12 +5,13 @@ using Microsoft.Extensions.Options;
 
 namespace KafkaServices.Services
 {
-    public class KafkaKeyboardProducer<TKey, TValue>
+    public class KafkaOrderProducer<TKey, TValue>
     {
-        private readonly ProducerConfig _config;
-        private readonly IOptionsMonitor<KafkaSettingsForKeyboard> _kafkaSettings;
 
-        public KafkaKeyboardProducer(IOptionsMonitor<KafkaSettingsForKeyboard> kafkaSettings)
+        private readonly ProducerConfig _config;
+        private readonly IOptionsMonitor<KafkaSettingsForOrder> _kafkaSettings;
+
+        public KafkaOrderProducer(IOptionsMonitor<KafkaSettingsForOrder> kafkaSettings)
         {
             _kafkaSettings = kafkaSettings;
             _config = new ProducerConfig()

@@ -22,6 +22,8 @@ builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
 
 //optionsMonitor
 builder.Services.Configure<KafkaSettingsForKeyboard>(builder.Configuration.GetSection(nameof(KafkaSettingsForKeyboard)));
+builder.Services.Configure<KafkaSettingsForClient>(builder.Configuration.GetSection(nameof(KafkaSettingsForClient)));
+builder.Services.Configure<KafkaSettingsForOrder>(builder.Configuration.GetSection(nameof(KafkaSettingsForOrder)));
 //HealthCheck
 builder.Services.AddHealthChecks().AddCheck<SqlHealthCheck>("SQL Server");
 
