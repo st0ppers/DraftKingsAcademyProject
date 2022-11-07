@@ -1,10 +1,12 @@
 ﻿using System.Net;
-using KafkaServices.Services;
+using KafkaServices.KafkaSettings;
+using KafkaServices.Services.Producer;
 using Keyboard.Models.Commands;
 using Keyboard.Models.Requests;
 using Keyboard.Models.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Keyboard.ShopProject.Controllers
 {
@@ -13,12 +15,12 @@ namespace Keyboard.ShopProject.Controllers
     public class ClientController : Controller
     {
         private readonly IMediator _mediator;
-        private readonly KafkaClientProducer<int, AddClientRequest> _kafkaProducer;
+        private readonly KafkaClientProducer _kafkaProducer;
 
-        public ClientController(IMediator mediator, KafkaClientProducer<int, AddClientRequest> kafkaProducer)
+        public ClientController(IMediator mediator,  IOptionsMonitor<KafkaSettingsForClient> kafkaSettings)
         {
             _mediator = mediator;
-            _kafkaProducer = kafkaProducer;
+            _kafkaProducer = new KafkaClientProducer(kafkaSettings);
         }
 
         [HttpGet(nameof(GetAllClients))]
@@ -38,7 +40,7 @@ namespace Keyboard.ShopProject.Controllers
         public async Task<IActionResult> CreateClient([FromBody] AddClientRequest request)
         {
             var response = await _mediator.Send(new CreateClientCommand(request));
-            await _kafkaProducer.Produce(response.Client.ClientID, request);
+            await _kafkaProducer.Produce(response.Client.ClientID, request, _kafkaProducer.Settings.CurrentValue.Topic, _kafkaProducer.Config);
             return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
         }
 

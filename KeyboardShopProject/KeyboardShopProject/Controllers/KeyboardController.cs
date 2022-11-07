@@ -1,9 +1,11 @@
 ﻿using System.Net;
-using KafkaServices.Services;
+using KafkaServices.KafkaSettings;
+using KafkaServices.Services.Producer;
 using Keyboard.BL.Interfaces;
 using Keyboard.Models.Requests;
 using Keyboard.Models.Responses;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Keyboard.ShopProject.Controllers
 {
@@ -12,12 +14,12 @@ namespace Keyboard.ShopProject.Controllers
     public class KeyboardController : Controller
     {
         private readonly IKeyboardService _services;
-        private readonly KafkaKeyboardProducer<int, AddKeyboardRequest> _kafkaProducer;
+        private readonly KafkaKeyboardProducer _kafkaProducer;
 
-        public KeyboardController(IKeyboardService services, KafkaKeyboardProducer<int, AddKeyboardRequest> kafkaProducer)
+        public KeyboardController(IKeyboardService services, IOptionsMonitor<KafkaSettingsForKeyboard> settings)
         {
             _services = services;
-            _kafkaProducer = kafkaProducer;
+            _kafkaProducer = new KafkaKeyboardProducer(settings);
         }
 
         [HttpGet(nameof(GetAllKeyboards))]
@@ -37,6 +39,8 @@ namespace Keyboard.ShopProject.Controllers
         public async Task<IActionResult> AddKeyboard([FromBody] AddKeyboardRequest request)
         {
             var response = await _services.CreateKeyboard(request);
+            await _kafkaProducer.Produce(response.Keyboard.KeyboardID, request, _kafkaProducer.Settings.CurrentValue.Topic,
+                _kafkaProducer.Config);
             return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
         }
 

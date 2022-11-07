@@ -76,21 +76,12 @@ namespace Keyboard.BL.Services
         public async Task<KeyboardResponse> UpdateKeyboard(UpdateKeyboardRequest request)
         {
             var keyboardById = await _repository.GetById(request.KeyboardID);
-            var keyboardByModel = await _repository.GetByModel(request.Model);
             if (keyboardById == null)
             {
                 return new KeyboardResponse()
                 {
                     StatusCode = HttpStatusCode.NotFound,
                     Message = "Keyboard with that Id doesn't exist"
-                };
-            }
-            if (keyboardByModel.Model == keyboardById.Model)
-            {
-                return new KeyboardResponse()
-                {
-                    StatusCode = HttpStatusCode.NotFound,
-                    Message = "Keyboard with that model doesn't exist"
                 };
             }
 
