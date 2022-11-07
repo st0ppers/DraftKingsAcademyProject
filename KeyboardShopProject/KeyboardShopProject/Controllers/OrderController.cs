@@ -1,9 +1,11 @@
 ﻿using System.Net;
-using KafkaServices.Services;
+using KafkaServices.KafkaSettings;
+using KafkaServices.Services.Producer;
 using Keyboard.BL.Interfaces;
 using Keyboard.Models.Requests;
 using Keyboard.Models.Responses;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Keyboard.ShopProject.Controllers
 {
@@ -12,13 +14,12 @@ namespace Keyboard.ShopProject.Controllers
     public class OrderController : Controller
     {
         private readonly IOrderServices _orderServices;
-        private readonly KafkaOrderProducer<int, AddOrderRequest> _kafkaProducer;
+        private readonly KafkaOrderProducer _kafkaProducer;
 
-
-        public OrderController(IOrderServices orderServices, KafkaOrderProducer<int, AddOrderRequest> kafkaProducer)
+        public OrderController(IOrderServices orderServices,IOptionsMonitor<KafkaSettingsForOrder> settings)
         {
             _orderServices = orderServices;
-            _kafkaProducer = kafkaProducer;
+            _kafkaProducer = new KafkaOrderProducer(settings);
         }
 
         [HttpGet(nameof(GetAllOrders))]
@@ -38,7 +39,7 @@ namespace Keyboard.ShopProject.Controllers
         public async Task<IActionResult> CreateOrder([FromBody] AddOrderRequest request)
         {
             var response = await _orderServices.CreateOrder(request);
-            await _kafkaProducer.Produce(response.OrderID, request);
+            await _kafkaProducer.Produce(response.OrderID, request,_kafkaProducer.Settings.CurrentValue.Topic,_kafkaProducer.Config);
             return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
         }
 

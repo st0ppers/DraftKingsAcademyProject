@@ -1,6 +1,5 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using KafkaServices.KafkaSettings;
 using Keyboard.BL.CommandHandler;
 using Keyboard.ShopProject.CustomHealthChecks;
 using Keyboard.ShopProject.ExtensionMethods;
@@ -15,15 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddSerilog(logger);
 
-builder.Services.RegisterRepositories().RegisterServices().AddAutoMapper(typeof(Program));
+builder.Services.RegisterRepositories().RegisterServices().RegisterIHostedServices().RegisterIOptionsMonitor(builder).AddAutoMapper(typeof(Program));
 
 builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
 
-//optionsMonitor
-builder.Services.Configure<KafkaSettingsForKeyboard>(builder.Configuration.GetSection(nameof(KafkaSettingsForKeyboard)));
-builder.Services.Configure<KafkaSettingsForClient>(builder.Configuration.GetSection(nameof(KafkaSettingsForClient)));
-builder.Services.Configure<KafkaSettingsForOrder>(builder.Configuration.GetSection(nameof(KafkaSettingsForOrder)));
 //HealthCheck
 builder.Services.AddHealthChecks().AddCheck<SqlHealthCheck>("SQL Server");
 

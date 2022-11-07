@@ -1,9 +1,10 @@
-﻿using MessagePack;
+﻿using Keyboard.Models.Models;
+using MessagePack;
 
 namespace Keyboard.Models.Requests
 {
     [MessagePackObject()]
-    public class AddOrderRequest
+    public class AddOrderRequest : IGetId
     {
         [Key(0)]
         public int KeyboardID { get; set; }
@@ -11,5 +12,15 @@ namespace Keyboard.Models.Requests
         public int ClientID { get; set; }
         [Key(2)]
         public DateTime Date { get; set; }
+
+        public override string ToString()
+        {
+            return $"KeyboardID = {KeyboardID}, ClientID = {ClientID}";
+        }
+
+        public int Get()
+        {
+            return KeyboardID;
+        }
     }
 }

@@ -3,7 +3,7 @@
 namespace Keyboard.Models.Models
 {
     [MessagePackObject()]
-    public class OrderModel
+    public class OrderModel : IGetId
     {
         [Key(0)]
         public int OrderID { get; set; }
@@ -11,5 +11,11 @@ namespace Keyboard.Models.Models
         public int ClientID { get; set; }
         public decimal TotalPrice { get; set; }
         public DateTime Date { get; set; }
+
+
+        public int Get()
+        {
+            return KeyboardID;
+        }
     }
 }

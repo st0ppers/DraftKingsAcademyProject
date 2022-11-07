@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
-using System.Reflection;
+﻿using System.Net;
 
 namespace Keyboard.ShopProject.Middleware
 {
