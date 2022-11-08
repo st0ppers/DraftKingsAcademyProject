@@ -25,7 +25,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "SELECT * FROM Client WITH (NOLOCK)";
-                    conn.Open();
+                    await conn.OpenAsync();
                     return await conn.QueryAsync<ClientModel>(query);
                 }
                 catch (Exception e)
@@ -43,7 +43,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "SELECT * FROM Client WITH (NOLOCK) WHERE ClientID=@ClientID";
-                    conn.Open();
+                    await conn.OpenAsync();
                     return await conn.QueryFirstOrDefaultAsync<ClientModel>(query, new { ClientID = id });
                 }
                 catch (Exception e)
@@ -61,7 +61,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "SELECT * FROM Client WITH (NOLOCK) WHERE FullName=@FullName";
-                    conn.Open();
+                    await conn.OpenAsync();
                     return await conn.QueryFirstOrDefaultAsync<ClientModel>(query, new { FullName = clientName });
                 }
                 catch (Exception e)
@@ -78,10 +78,9 @@ namespace Keyboard.DL.Repositorys
             {
                 try
                 {
-                    var query = "INSERT INTO Client (FullName,Address,Age) VALUES (@FullName,@Address,@Age)";
-                    conn.Open();
-                    await conn.QueryFirstOrDefaultAsync<ClientModel>(query, client);
-                    return await GetByFullName(client.FullName);
+                    var query = "INSERT INTO Client OUTPUT Inserted.* VALUES (@FullName,@Address,@Age)";
+                    await conn.OpenAsync();
+                    return await conn.QueryFirstOrDefaultAsync<ClientModel>(query, client);
                 }
                 catch (Exception e)
                 {
@@ -98,7 +97,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "UPDATE Client SET FullName=@FullName,Address=@Address,Age=@Age WHERE ClientID=@ClientID";
-                    conn.Open();
+                    await conn.OpenAsync();
                     await conn.QueryFirstOrDefaultAsync<KeyboardModel>(query, client);
                     return await GetById(client.ClientID);
                 }
@@ -116,11 +115,9 @@ namespace Keyboard.DL.Repositorys
             {
                 try
                 {
-                    var query = "DELETE FROM Client WHERE ClientID=@ClientID";
-                    conn.Open();
-                    var client = await GetById(id);
-                    await conn.QueryFirstOrDefaultAsync<ClientModel>(query, new { ClientID = id });
-                    return client;
+                    var query = "DELETE FROM Client OUTPUT Deleted.* WHERE ClientID=@ClientID";
+                    await conn.OpenAsync();
+                    return await conn.QueryFirstOrDefaultAsync<ClientModel>(query, new { ClientID = id });
                 }
                 catch (Exception e)
                 {

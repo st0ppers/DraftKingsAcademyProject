@@ -22,7 +22,7 @@ builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
 //HealthCheck
 builder.Services.AddHealthChecks().AddCheck<SqlHealthCheck>("SQL Server");
 
-builder.Services.AddMediatR(typeof(CreaterClientCommandHandler).Assembly);
+builder.Services.AddMediatR(typeof(CreateClientCommandHandler).Assembly);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

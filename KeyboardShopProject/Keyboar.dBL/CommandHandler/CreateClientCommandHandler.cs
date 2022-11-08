@@ -8,11 +8,11 @@ using MediatR;
 
 namespace Keyboard.BL.CommandHandler
 {
-    public class CreaterClientCommandHandler : IRequestHandler<CreateClientCommand, ClientResponse>
+    public class CreateClientCommandHandler : IRequestHandler<CreateClientCommand, ClientResponse>
     {
         private readonly IClientSqlRepository _clientSqlRepository;
         private readonly IMapper _mapper;
-        public CreaterClientCommandHandler(IClientSqlRepository clientSqlRepository, IMapper mapper)
+        public CreateClientCommandHandler(IClientSqlRepository clientSqlRepository, IMapper mapper)
         {
             _clientSqlRepository = clientSqlRepository;
             _mapper = mapper;
@@ -20,7 +20,8 @@ namespace Keyboard.BL.CommandHandler
 
         public async Task<ClientResponse> Handle(CreateClientCommand request, CancellationToken cancellationToken)
         {
-            if (await _clientSqlRepository.GetByFullName(request.client.FullName) != null)
+            var isClientExist = await _clientSqlRepository.GetByFullName(request.client.FullName);
+            if (isClientExist  != null)
             {
                 return new ClientResponse()
                 {
@@ -34,7 +35,7 @@ namespace Keyboard.BL.CommandHandler
             return new ClientResponse()
             {
                 StatusCode = HttpStatusCode.Created,
-                Message = $"Successfully created client with id{client.ClientID}",
+                Message = $"Successfully created client with id {result.ClientID}",
                 Client = result
             };
         }

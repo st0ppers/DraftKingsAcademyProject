@@ -26,7 +26,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "SELECT * FROM Keyboard WITH (NOLOCK)";
-                    conn.Open();
+                    await conn.OpenAsync();
                     return await conn.QueryAsync<KeyboardModel>(query);
                 }
                 catch (Exception e)
@@ -44,7 +44,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "SELECT * FROM Keyboard WITH (NOLOCK) WHERE KeyboardID=@KeyboardID";
-                    conn.Open();
+                    await conn.OpenAsync();
                     return await conn.QueryFirstOrDefaultAsync<KeyboardModel>(query, new { KeyboardID = id });
                 }
                 catch (Exception e)
@@ -62,7 +62,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "SELECT * FROM Keyboard WITH (NOLOCK) WHERE Model=@Model";
-                    conn.Open();
+                    await conn.OpenAsync();
                     return await conn.QueryFirstOrDefaultAsync<KeyboardModel>(query, new { Model = modelName });
                 }
                 catch (Exception e)
@@ -80,7 +80,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "INSERT INTO Keyboard (Size,Model,Price,Quantity,Color) VALUES (@Size,@Model,@Price,@Quantity,@Color)";
-                    conn.Open();
+                    await conn.OpenAsync();
                     await conn.QueryFirstOrDefaultAsync<KeyboardModel>(query, keyboard);
                     return await GetByModel(keyboard.Model);
                 }
@@ -99,7 +99,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "UPDATE Keyboard SET Size=@Size,Model=@Model,Price=@Price,Quantity=@Quantity,Color=@Color WHERE  KeyboardID=@KeyboardID ";
-                    conn.Open();
+                    await conn.OpenAsync();
                     await conn.QueryFirstOrDefaultAsync<KeyboardModel>(query, keyboard);
                     return await GetById(keyboard.KeyboardID);
                 }
@@ -118,7 +118,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "DELETE FROM Keyboard WHERE KeyboardID=@KeyboardID";
-                    conn.Open();
+                    await conn.OpenAsync();
                     return await conn.QueryFirstOrDefaultAsync<KeyboardModel>(query, new { KeyboardID = id });
                 }
                 catch (Exception e)
