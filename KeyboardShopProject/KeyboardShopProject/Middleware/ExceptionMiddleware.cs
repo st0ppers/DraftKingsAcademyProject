@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Microsoft.AspNetCore.Http;
 
 namespace Keyboard.ShopProject.Middleware
 {
@@ -26,17 +27,32 @@ namespace Keyboard.ShopProject.Middleware
             }
         }
 
-        public async Task Handler(HttpContext context, Exception e)
+        public async Task Handler(HttpContext context, Exception error)
         {
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-            await context.Response.WriteAsync(new ErrorObject()
+            switch (error)
             {
-                Message = "Internal Error",
-                StatusCode = context.Response.StatusCode
-            }.ToString()!);
+                case CustomException e:
+                    await context.Response.WriteAsync(new ErrorObject()
+                    {
+                        Message = "Bad request",
+                        StatusCode = context.Response.StatusCode = (int)HttpStatusCode.BadRequest
+                    }.ToString());
+                    break;
+                case KeyNotFoundException e:
+                    await context.Response.WriteAsync(new ErrorObject()
+                    {
+                        Message = "Not found",
+                        StatusCode = context.Response.StatusCode = (int)HttpStatusCode.NotFound
+                    }.ToString());
+                    break;
+                default:
+                    await context.Response.WriteAsync(new ErrorObject()
+                    {
+                        Message = "Internal Error",
+                        StatusCode = context.Response.StatusCode = (int)HttpStatusCode.InternalServerError
+                    }.ToString());
+                    break;
+            }
         }
-
     }
 }

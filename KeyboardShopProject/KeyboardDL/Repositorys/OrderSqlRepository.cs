@@ -81,7 +81,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "UPDATE [Order] SET KeyboardID=@KeyboardID,ClientID=@ClientID,TotalPrice=@TotalPrice,Date=@Date WHERE OrderID=@OrderID";
-                    conn.Open();
+                    await conn.OpenAsync();
                     await conn.QueryFirstOrDefaultAsync<KeyboardModel>(query, order);
                     return await GetById(order.OrderID);
                 }
@@ -100,7 +100,7 @@ namespace Keyboard.DL.Repositorys
                 try
                 {
                     var query = "DELETE FROM [Order] WHERE OrderID=@OrderID";
-                    conn.Open();
+                    await conn.OpenAsync();
                     var order = await GetById(id);
                     await conn.QueryFirstOrDefaultAsync<OrderModel>(query, new { OrderID = id });
                     return order;

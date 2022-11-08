@@ -5,6 +5,7 @@ using Keyboard.BL.Interfaces;
 using Keyboard.BL.Services;
 using Keyboard.DL.Interfaces;
 using Keyboard.DL.Repositorys;
+using Keyboard.Models.Models;
 using Keyboard.Models.Requests;
 
 namespace Keyboard.ShopProject.ExtensionMethods
@@ -17,6 +18,7 @@ namespace Keyboard.ShopProject.ExtensionMethods
             services.AddSingleton<IClientSqlRepository, ClientSqlRepository>();
             services.AddSingleton<IOrderSqlRepository, OrderSqlRepository>();
             services.AddSingleton<IMonthlyReportRepository, MonthlyReportRepository>();
+            services.AddSingleton<IShoppingCartMongoRepository, ShoppingCartMongoRepository>();
             return services;
         }
 
@@ -41,6 +43,7 @@ namespace Keyboard.ShopProject.ExtensionMethods
             builder.Services.Configure<KafkaSettingsForKeyboard>(builder.Configuration.GetSection(nameof(KafkaSettingsForKeyboard)));
             builder.Services.Configure<KafkaSettingsForClient>(builder.Configuration.GetSection(nameof(KafkaSettingsForClient)));
             builder.Services.Configure<KafkaSettingsForOrder>(builder.Configuration.GetSection(nameof(KafkaSettingsForOrder)));
+            builder.Services.Configure<MongoConfiguration>(builder.Configuration.GetSection(nameof(MongoConfiguration)));
             return service;
         }
     }
