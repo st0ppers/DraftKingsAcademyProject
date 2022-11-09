@@ -1,10 +1,13 @@
 ﻿using System.Net;
 using AutoMapper;
+using KafkaServices.KafkaSettings;
+using KafkaServices.Services.Producer;
 using Keyboard.BL.Interfaces;
 using Keyboard.DL.Interfaces;
 using Keyboard.Models.Models;
 using Keyboard.Models.Requests;
 using Keyboard.Models.Responses;
+using Microsoft.Extensions.Options;
 
 namespace Keyboard.BL.Services
 {
@@ -12,10 +15,12 @@ namespace Keyboard.BL.Services
     {
         private readonly IKeyboardSqlRepository _repository;
         private readonly IMapper _mapper;
-        public KeyboardServices(IKeyboardSqlRepository repository, IMapper mapper)
+        private readonly KafkaKeyboardProducer _kafkaProducer;
+        public KeyboardServices(IKeyboardSqlRepository repository, IMapper mapper,IOptionsMonitor<KafkaSettingsForKeyboard> settings)
         {
             _repository = repository;
             _mapper = mapper;
+            _kafkaProducer = new KafkaKeyboardProducer(settings);
         }
 
         public async Task<IEnumerable<KeyboardModel>> GetAllKeyboards()
@@ -64,7 +69,16 @@ namespace Keyboard.BL.Services
 
             var keyboard = _mapper.Map<KeyboardModel>(request);
             var result = await _repository.CreateKeyboard(keyboard);
-
+            var kafkaReport = new KafkaReportModelForKeyboard()
+            {
+                Price = result.Price,
+                Model = result.Model,
+                Quantity = result.Quantity,
+                Color = result.Color,
+                Size = result.Size
+            };
+            await _kafkaProducer.Produce(result.KeyboardID, kafkaReport, _kafkaProducer.Settings.CurrentValue.Topic,
+                _kafkaProducer.Config);
             return new KeyboardResponse()
             {
                 Keyboard = result,

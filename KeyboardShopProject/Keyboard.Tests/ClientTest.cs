@@ -1,10 +1,12 @@
 using System.Net;
 using AutoMapper;
+using KafkaServices.KafkaSettings;
 using Keyboard.BL.CommandHandler;
 using Keyboard.DL.Interfaces;
 using Keyboard.Models.Commands;
 using Keyboard.Models.Models;
 using Keyboard.Models.Requests;
+using Microsoft.Extensions.Options;
 using Moq;
 using Mapper = Keyboard.ShopProject.AutoMapper.Mapper;
 
@@ -32,6 +34,7 @@ namespace Keyboard.Tests
 
         private readonly IMapper _mapper;
         private readonly Mock<IClientSqlRepository> _mockRepo;
+        private  Mock<IOptionsMonitor<KafkaSettingsForClient>> _mockSettings;
 
         public ClientTest()
         {
@@ -40,7 +43,6 @@ namespace Keyboard.Tests
                 c.AddProfile<Mapper>();
             });
             _mockRepo = new Mock<IClientSqlRepository>();
-
             _mapper = mapperConfig.CreateMapper();
         }
 
@@ -121,13 +123,22 @@ namespace Keyboard.Tests
                     FullName = client.FullName,
                     ClientID = clientID
                 }))
-                .ReturnsAsync(() => _clients.FirstOrDefault(x => x.ClientID == clientID));
+                !.ReturnsAsync(() => _clients.FirstOrDefault(x => x.ClientID == clientID));
 
             _mockRepo.Setup(x => x.GetByFullName(client.FullName))
                 .ReturnsAsync(_clients.FirstOrDefault(x => x.FullName == client.FullName));
+            var settings = new KafkaSettingsForClient()
+            {
+                AutoOffsetReset = 1,
+                BootstrapServers = "localhost:9092",
+                Topic = "Client",
+                GroupId = "ClientGroup1"
+            };
+            _mockSettings = new Mock<IOptionsMonitor<KafkaSettingsForClient>>();
+            _mockSettings.Setup(s => s.CurrentValue).Returns(settings);
 
             //inject
-            var handler = new CreateClientCommandHandler(_mockRepo.Object, _mapper);
+            var handler = new CreateClientCommandHandler(_mockRepo.Object, _mapper, _mockSettings.Object);
 
             //act
             var result = await handler.Handle(new CreateClientCommand(client), new CancellationToken());
@@ -155,8 +166,18 @@ namespace Keyboard.Tests
             _mockRepo.Setup(r => r.CreateClient(It.IsAny<ClientModel>()))
                 .ReturnsAsync(() => _clients.FirstOrDefault(x => x.FullName == clientRequest.FullName));
 
+            var settings = new KafkaSettingsForClient()
+            {
+                AutoOffsetReset = 1,
+                BootstrapServers = "localhost:9092",
+                Topic = "Client",
+                GroupId = "ClientGroup1"
+            };
+            _mockSettings = new Mock<IOptionsMonitor<KafkaSettingsForClient>>();
+            _mockSettings.Setup(s => s.CurrentValue).Returns(settings);
+
             //inject
-            var handler = new CreateClientCommandHandler(_mockRepo.Object, _mapper);
+            var handler = new CreateClientCommandHandler(_mockRepo.Object, _mapper, _mockSettings.Object);
 
             //act
             var result = await handler.Handle(new CreateClientCommand(clientRequest), new CancellationToken());

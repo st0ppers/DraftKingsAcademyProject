@@ -2,21 +2,17 @@
 using Confluent.Kafka;
 using KafkaServices.KafkaSettings;
 using KafkaServices.Serializers;
-using Keyboard.DL.Interfaces;
-using Keyboard.Models.Models;
 using Microsoft.Extensions.Options;
 
 namespace KafkaServices.Services.Consumer
 {
-    public class KafkaOrderConsumer<TKey, TValue>  /*where TValue : IGetId*/
+    public class KafkaOrderConsumer<TKey, TValue> 
     {
         private readonly IConsumer<TKey, TValue> _consumer;
         private readonly TransformBlock<TValue, string> _transformBlock;
-        private readonly IKeyboardSqlRepository _keyboardSqlRepository;
 
-        public KafkaOrderConsumer(IOptionsMonitor<KafkaSettingsForOrder> settings, IKeyboardSqlRepository keyboardSqlRepository)
+        public KafkaOrderConsumer(IOptionsMonitor<KafkaSettingsForOrder> settings)
         {
-            _keyboardSqlRepository = keyboardSqlRepository;
             var consumerConfig = new ConsumerConfig()
             {
                 BootstrapServers = settings.CurrentValue.BootstrapServers,
@@ -30,10 +26,9 @@ namespace KafkaServices.Services.Consumer
 
             _consumer.Subscribe(settings.CurrentValue.Topic);
 
-            _transformBlock = new TransformBlock<TValue, string>(async request =>
+            _transformBlock = new TransformBlock<TValue, string>(request =>
             {
-                //var keyboard = await _keyboardSqlRepository.GetById(request.Get());
-                return $"Ordered successfull";//{keyboard.Model}
+                return $"Ordered successfull";
             });
             var actionBlock = new ActionBlock<string>(Console.WriteLine);
 

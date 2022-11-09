@@ -27,9 +27,9 @@ namespace Keyboard.ShopProject.ExtensionMethods
         {
             services.AddSingleton<IKeyboardService, KeyboardServices>();
             services.AddSingleton<IOrderServices, OrderServices>();
-            services.AddSingleton<BaseKafkaProducer<int, AddClientRequest>>();
-            services.AddSingleton<BaseKafkaProducer<int, AddKeyboardRequest>>();
-            services.AddSingleton<BaseKafkaProducer<int, OrderResponse>>();
+            services.AddSingleton<BaseKafkaProducer<int, KafkaReportModelForClient>>();
+            services.AddSingleton<BaseKafkaProducer<int, KafkaReportModelForKeyboard>>();
+            services.AddSingleton<BaseKafkaProducer<int, KafkaReportModelForOrder>>();
             services.AddSingleton<IShoppingCartService, ShoppingCartService>();
             services.AddSingleton<IShoppingCartMongoRepository, ShoppingCartMongoRepository>();
             return services;

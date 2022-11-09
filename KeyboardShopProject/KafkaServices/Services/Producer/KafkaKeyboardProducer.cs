@@ -1,11 +1,11 @@
 ﻿using Confluent.Kafka;
 using KafkaServices.KafkaSettings;
-using Keyboard.Models.Requests;
+using Keyboard.Models.Models;
 using Microsoft.Extensions.Options;
 
 namespace KafkaServices.Services.Producer
 {
-    public class KafkaKeyboardProducer : BaseKafkaProducer<int, AddKeyboardRequest>
+    public class KafkaKeyboardProducer : BaseKafkaProducer<int, KafkaReportModelForKeyboard>
     {
         public ProducerConfig Config { get; set; }
         public IOptionsMonitor<KafkaSettingsForKeyboard> Settings { get; set; }

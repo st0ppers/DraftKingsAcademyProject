@@ -3,7 +3,7 @@
 namespace Keyboard.Models.Models
 {
     [MessagePackObject()]
-    public class KafkaReportModel
+    public class KafkaReportModelForOrder
     {
         [Key(0)]
         public int OrderID { get; set; }
@@ -12,7 +12,7 @@ namespace Keyboard.Models.Models
         [Key(2)]
         public DateTime DateOfOrder { get; set; }
         [Key(3)]
-        public List<KeyboardModel> Keyboard { get; set; }
+        public List<KeyboardModel> Keyboards { get; set; }
 
     }
 }

@@ -1,7 +1,6 @@
 ﻿using KafkaServices.KafkaSettings;
 using Keyboard.DL.Interfaces;
 using Keyboard.Models.Models;
-using Keyboard.Models.Responses;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
@@ -9,16 +8,13 @@ namespace KafkaServices.Services.Consumer
 {
     public class HostedKafkaConsumer : IHostedService
     {
-        private KafkaOrderConsumer<int, OrderResponse> _consumer;
+        private KafkaOrderConsumer<int, KafkaReportModelForOrder> _consumer;
         private readonly IMonthlyReportRepository _monthlyReportRepository;
-        private readonly IKeyboardSqlRepository _keyboardSqlRepository;
-        
 
-        public HostedKafkaConsumer(IKeyboardSqlRepository keyboardSqlRepository, IOptionsMonitor<KafkaSettingsForOrder> settings, IMonthlyReportRepository monthlyReportRepository)
+        public HostedKafkaConsumer(IOptionsMonitor<KafkaSettingsForOrder> settings, IMonthlyReportRepository monthlyReportRepository)
         {
-            _keyboardSqlRepository = keyboardSqlRepository;
             _monthlyReportRepository = monthlyReportRepository;
-            _consumer = new KafkaOrderConsumer<int, OrderResponse>(settings, keyboardSqlRepository);
+            _consumer = new KafkaOrderConsumer<int, KafkaReportModelForOrder>(settings);
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
