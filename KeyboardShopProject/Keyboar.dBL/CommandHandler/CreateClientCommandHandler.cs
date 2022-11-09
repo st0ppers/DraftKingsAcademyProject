@@ -1,10 +1,13 @@
 ﻿using System.Net;
 using AutoMapper;
+using KafkaServices.KafkaSettings;
+using KafkaServices.Services.Producer;
 using Keyboard.DL.Interfaces;
 using Keyboard.Models.Commands;
 using Keyboard.Models.Models;
 using Keyboard.Models.Responses;
 using MediatR;
+using Microsoft.Extensions.Options;
 
 namespace Keyboard.BL.CommandHandler
 {
@@ -12,10 +15,13 @@ namespace Keyboard.BL.CommandHandler
     {
         private readonly IClientSqlRepository _clientSqlRepository;
         private readonly IMapper _mapper;
-        public CreateClientCommandHandler(IClientSqlRepository clientSqlRepository, IMapper mapper)
+        private readonly KafkaClientProducer _kafkaProducer;
+
+        public CreateClientCommandHandler(IClientSqlRepository clientSqlRepository, IMapper mapper,IOptionsMonitor<KafkaSettingsForClient> settings)
         {
             _clientSqlRepository = clientSqlRepository;
             _mapper = mapper;
+            _kafkaProducer = new KafkaClientProducer(settings);
         }
 
         public async Task<ClientResponse> Handle(CreateClientCommand request, CancellationToken cancellationToken)
@@ -32,6 +38,13 @@ namespace Keyboard.BL.CommandHandler
 
             var client = _mapper.Map<ClientModel>(request.client);
             var result = await _clientSqlRepository.CreateClient(client);
+            var kafkaReport = new KafkaReportModelForClient()
+            {
+                Address = result.Address,
+                Age = result.Age,
+                FullName = result.FullName
+            };
+            await _kafkaProducer.Produce(result.ClientID, kafkaReport, _kafkaProducer.Settings.CurrentValue.Topic, _kafkaProducer.Config);
             return new ClientResponse()
             {
                 StatusCode = HttpStatusCode.Created,

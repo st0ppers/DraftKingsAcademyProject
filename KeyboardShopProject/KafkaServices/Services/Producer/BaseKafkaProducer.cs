@@ -19,7 +19,7 @@ namespace KafkaServices.Services.Producer
                 var result = await producer.ProduceAsync(topic, msg);
                 if (result != null)
                 {
-                    Console.WriteLine($"Delivered key {result.Key} with value {result.Message.Value.ToString()}");
+                    Console.WriteLine($"Delivered key {result.Key}");
                 }
             }
             catch (Exception e)

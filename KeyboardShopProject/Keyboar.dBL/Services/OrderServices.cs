@@ -1,10 +1,13 @@
 ﻿using System.Net;
 using AutoMapper;
+using KafkaServices.KafkaSettings;
+using KafkaServices.Services.Producer;
 using Keyboard.BL.Interfaces;
 using Keyboard.DL.Interfaces;
 using Keyboard.Models.Models;
 using Keyboard.Models.Requests;
 using Keyboard.Models.Responses;
+using Microsoft.Extensions.Options;
 
 namespace Keyboard.BL.Services
 {
@@ -14,15 +17,18 @@ namespace Keyboard.BL.Services
         private readonly IKeyboardSqlRepository _keyboardSqlRepository;
         private readonly IClientSqlRepository _clientSqlRepository;
         private readonly IShoppingCartMongoRepository _shoppingCartMongoRepository;
+        private readonly KafkaOrderProducer _kafkaProducer;
         private readonly IMapper _mapper;
 
-        public OrderServices(IOrderSqlRepository orderSqlRepository, IMapper mapper, IKeyboardSqlRepository keyboardSqlRepository, IClientSqlRepository clientSqlRepository, IShoppingCartMongoRepository shoppingCartMongoRepository)
+
+        public OrderServices(IOrderSqlRepository orderSqlRepository, IMapper mapper, IKeyboardSqlRepository keyboardSqlRepository, IClientSqlRepository clientSqlRepository, IShoppingCartMongoRepository shoppingCartMongoRepository, IOptionsMonitor<KafkaSettingsForOrder> settings)
         {
             _orderSqlRepository = orderSqlRepository;
             _mapper = mapper;
             _keyboardSqlRepository = keyboardSqlRepository;
             _clientSqlRepository = clientSqlRepository;
             _shoppingCartMongoRepository = shoppingCartMongoRepository;
+            _kafkaProducer = new KafkaOrderProducer(settings);
         }
 
         public async Task<IEnumerable<OrderModel>> GetAllOrders()
@@ -59,16 +65,7 @@ namespace Keyboard.BL.Services
         {
             var order = _mapper.Map<OrderModel>(request);
             var shoppingCart = await _shoppingCartMongoRepository.GetContent(order.ClientID);
-            //var keyboard = await _keyboardSqlRepository.GetById(request.KeyboardID);
             var client = await _clientSqlRepository.GetById(request.ClientID);
-            //if (keyboard == null)
-            //{
-            //    return new OrderResponse()
-            //    {
-            //        Message = "Keyboard with that Id doesn't exist",
-            //        StatusCode = HttpStatusCode.NotFound,
-            //    };
-            //}
             if (client == null)
             {
                 return new OrderResponse()
@@ -77,7 +74,6 @@ namespace Keyboard.BL.Services
                     StatusCode = HttpStatusCode.NotFound,
                 };
             }
-
             if (shoppingCart == null)
             {
                 return new OrderResponse()
@@ -86,30 +82,16 @@ namespace Keyboard.BL.Services
                     StatusCode = HttpStatusCode.BadRequest,
                 };
             }
-            //var check = shoppingCart.Keyboards.FirstOrDefault(x => x.KeyboardID == keyboard.KeyboardID);
-            //if (shoppingCart.Keyboards.Contains(check))
-            //{
-            //    shoppingCart = await _shoppingCartMongoRepository.RemoveFromShoppingCart(new ShoppingCartRequest()
-            //    {
-            //        ClientId = request.ClientID,
-            //        KeyboardId = check.KeyboardID
-            //    });
-            //}
-            //else
-            //{
-            //    return new OrderResponse()
-            //    {
-            //        StatusCode = HttpStatusCode.NotFound,
-            //        Message = "Keyboard is not in your shopping cart"
-            //    };
-            //}
+            foreach (var k in shoppingCart.Keyboards)
+            {
+                order.TotalPrice += k.Price;
+            }
             var keyboards = new List<KeyboardModel>();
             order.ShoppingCartID = shoppingCart.Id;
             var result = await _orderSqlRepository.CreateOrder(order);
             foreach (var k in shoppingCart.Keyboards)
             {
                 keyboards.Add(k);
-                result.TotalPrice += k.Price;
                 await _orderSqlRepository.AddOrderedKeyboards(result, k.KeyboardID);
                 await _shoppingCartMongoRepository.RemoveFromShoppingCart(new ShoppingCartRequest()
                 {
@@ -120,6 +102,15 @@ namespace Keyboard.BL.Services
                 keyboard.Quantity--;
                 await _keyboardSqlRepository.UpdateKeyboard(keyboard);
             }
+
+            var kafkaOrder = new KafkaReportModelForOrder()
+            {
+                Keyboards = keyboards,
+                DateOfOrder = order.Date,
+                OrderID = result.OrderID,
+                TotalPrice = result.TotalPrice
+            };
+            await _kafkaProducer.Produce(result.OrderID, kafkaOrder, _kafkaProducer.Settings.CurrentValue.Topic, _kafkaProducer.Config);
             return new OrderResponse()
             {
                 StatusCode = HttpStatusCode.Created,
