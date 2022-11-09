@@ -9,5 +9,6 @@ namespace Keyboard.DL.Interfaces
         public Task<OrderModel> CreateOrder(OrderModel order);
         public Task<OrderModel> UpdateOrder(OrderModel order);
         public Task<OrderModel> DeleteOrder(int id);
+        public Task<OrderModel> AddOrderedKeyboards(OrderModel order,int keyboardId);
     }
 }

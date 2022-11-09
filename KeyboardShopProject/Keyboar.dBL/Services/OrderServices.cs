@@ -13,14 +13,16 @@ namespace Keyboard.BL.Services
         private readonly IOrderSqlRepository _orderSqlRepository;
         private readonly IKeyboardSqlRepository _keyboardSqlRepository;
         private readonly IClientSqlRepository _clientSqlRepository;
+        private readonly IShoppingCartMongoRepository _shoppingCartMongoRepository;
         private readonly IMapper _mapper;
 
-        public OrderServices(IOrderSqlRepository orderSqlRepository, IMapper mapper, IKeyboardSqlRepository keyboardSqlRepository, IClientSqlRepository clientSqlRepository)
+        public OrderServices(IOrderSqlRepository orderSqlRepository, IMapper mapper, IKeyboardSqlRepository keyboardSqlRepository, IClientSqlRepository clientSqlRepository, IShoppingCartMongoRepository shoppingCartMongoRepository)
         {
             _orderSqlRepository = orderSqlRepository;
             _mapper = mapper;
             _keyboardSqlRepository = keyboardSqlRepository;
             _clientSqlRepository = clientSqlRepository;
+            _shoppingCartMongoRepository = shoppingCartMongoRepository;
         }
 
         public async Task<IEnumerable<OrderModel>> GetAllOrders()
@@ -46,24 +48,27 @@ namespace Keyboard.BL.Services
                 DateOfOrder = order.Date,
                 TotalPrice = order.TotalPrice,
                 StatusCode = HttpStatusCode.OK,
-                Keyboard = await _keyboardSqlRepository.GetById(order.KeyboardID),
-                Client = await _clientSqlRepository.GetById(order.ClientID),
+                Keyboard = new List<KeyboardModel>()
+                {
+                  await _keyboardSqlRepository.GetById(order.KeyboardID)
+                }
             };
         }
 
         public async Task<OrderResponse> CreateOrder(AddOrderRequest request)
         {
-            var keyboard = await _keyboardSqlRepository.GetById(request.KeyboardID);
+            var order = _mapper.Map<OrderModel>(request);
+            var shoppingCart = await _shoppingCartMongoRepository.GetContent(order.ClientID);
+            //var keyboard = await _keyboardSqlRepository.GetById(request.KeyboardID);
             var client = await _clientSqlRepository.GetById(request.ClientID);
-            if (keyboard == null)
-            {
-                return new OrderResponse()
-                {
-                    Message = "Keyboard with that Id doesn't exist",
-                    StatusCode = HttpStatusCode.NotFound,
-                };
-            }
-
+            //if (keyboard == null)
+            //{
+            //    return new OrderResponse()
+            //    {
+            //        Message = "Keyboard with that Id doesn't exist",
+            //        StatusCode = HttpStatusCode.NotFound,
+            //    };
+            //}
             if (client == null)
             {
                 return new OrderResponse()
@@ -73,10 +78,48 @@ namespace Keyboard.BL.Services
                 };
             }
 
-            var order = _mapper.Map<OrderModel>(request);
-            order.TotalPrice = keyboard.Price;
+            if (shoppingCart == null)
+            {
+                return new OrderResponse()
+                {
+                    Message = "Cannot create order with empty shopping cart",
+                    StatusCode = HttpStatusCode.BadRequest,
+                };
+            }
+            //var check = shoppingCart.Keyboards.FirstOrDefault(x => x.KeyboardID == keyboard.KeyboardID);
+            //if (shoppingCart.Keyboards.Contains(check))
+            //{
+            //    shoppingCart = await _shoppingCartMongoRepository.RemoveFromShoppingCart(new ShoppingCartRequest()
+            //    {
+            //        ClientId = request.ClientID,
+            //        KeyboardId = check.KeyboardID
+            //    });
+            //}
+            //else
+            //{
+            //    return new OrderResponse()
+            //    {
+            //        StatusCode = HttpStatusCode.NotFound,
+            //        Message = "Keyboard is not in your shopping cart"
+            //    };
+            //}
+            var keyboards = new List<KeyboardModel>();
+            order.ShoppingCartID = shoppingCart.Id;
             var result = await _orderSqlRepository.CreateOrder(order);
-
+            foreach (var k in shoppingCart.Keyboards)
+            {
+                keyboards.Add(k);
+                result.TotalPrice += k.Price;
+                await _orderSqlRepository.AddOrderedKeyboards(result, k.KeyboardID);
+                await _shoppingCartMongoRepository.RemoveFromShoppingCart(new ShoppingCartRequest()
+                {
+                    ClientId = order.ClientID,
+                    KeyboardId = k.KeyboardID
+                });
+                var keyboard = await _keyboardSqlRepository.GetById(k.KeyboardID);
+                keyboard.Quantity--;
+                await _keyboardSqlRepository.UpdateKeyboard(keyboard);
+            }
             return new OrderResponse()
             {
                 StatusCode = HttpStatusCode.Created,
@@ -84,8 +127,7 @@ namespace Keyboard.BL.Services
                 OrderID = result.OrderID,
                 DateOfOrder = result.Date,
                 TotalPrice = result.TotalPrice,
-                Client = client,
-                Keyboard = keyboard
+                Keyboard = keyboards
             };
         }
 
@@ -131,8 +173,10 @@ namespace Keyboard.BL.Services
                 OrderID = result.OrderID,
                 DateOfOrder = result.Date,
                 TotalPrice = result.TotalPrice,
-                Client = client,
-                Keyboard = keyboard
+                Keyboard = new List<KeyboardModel>()
+                {
+                    keyboard
+                }
             };
         }
 
@@ -155,8 +199,10 @@ namespace Keyboard.BL.Services
                 OrderID = order.OrderID,
                 DateOfOrder = order.Date,
                 TotalPrice = order.TotalPrice,
-                Client = await _clientSqlRepository.GetById(order.ClientID),
-                Keyboard = await _keyboardSqlRepository.GetById(order.KeyboardID)
+                Keyboard = new List<KeyboardModel>()
+                {
+                    await _keyboardSqlRepository.GetById(order.KeyboardID)
+                }
             };
         }
     }

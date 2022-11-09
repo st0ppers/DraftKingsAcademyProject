@@ -61,10 +61,9 @@ namespace Keyboard.DL.Repositorys
             {
                 await using (var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
                 {
-                    var query = "INSERT INTO [Order] output INSERTED.* VALUES (@KeyboardID,@ClientID,@TotalPrice,@Date)";
+                    var query = "INSERT INTO [Order] output INSERTED.* VALUES (@ClientID,@TotalPrice,@Date,@ShoppingCartID)";
                     await conn.OpenAsync();
-                    var result = await conn.QueryFirstOrDefaultAsync<OrderModel>(query, order);
-                    return result;
+                    return await conn.QueryFirstOrDefaultAsync<OrderModel>(query, order);
                 }
             }
             catch (Exception e)
@@ -108,6 +107,24 @@ namespace Keyboard.DL.Repositorys
                 catch (Exception e)
                 {
                     _logger.LogError($"Error from {nameof(DeleteOrder)} with message {e.Message}");
+                    throw;
+                }
+            }
+        }
+
+        public async Task<OrderModel> AddOrderedKeyboards(OrderModel order, int keyboardId)
+        {
+            await using (var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                try
+                {
+                    var query = "INSERT INTO OrderedKeyboards VALUES (@OrderId,@KeyboardId)";
+                    await conn.OpenAsync();
+                    return await conn.QueryFirstOrDefaultAsync(query, new { OrderId = order.OrderID, KeyboardID = keyboardId });
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"Error from {nameof(AddOrderedKeyboards)} with message {e.Message}");
                     throw;
                 }
             }

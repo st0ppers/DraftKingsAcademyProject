@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace KafkaServices.Services.Consumer
 {
-    public class KafkaOrderConsumer<TKey, TValue> where TValue : IGetId
+    public class KafkaOrderConsumer<TKey, TValue>  /*where TValue : IGetId*/
     {
         private readonly IConsumer<TKey, TValue> _consumer;
         private readonly TransformBlock<TValue, string> _transformBlock;
@@ -32,15 +32,8 @@ namespace KafkaServices.Services.Consumer
 
             _transformBlock = new TransformBlock<TValue, string>(async request =>
             {
-                var keyboard = await _keyboardSqlRepository.GetById(request.Get());
-                if (keyboard.Quantity >= 1)
-                {
-                    keyboard.Quantity--;
-                    await _keyboardSqlRepository.UpdateKeyboard(keyboard);
-                    return $"Successfully ordered {keyboard.Model}";
-                }
-
-                return $"Cannot order {keyboard.Model} because it is not in stock";
+                //var keyboard = await _keyboardSqlRepository.GetById(request.Get());
+                return $"Ordered successfull";//{keyboard.Model}
             });
             var actionBlock = new ActionBlock<string>(Console.WriteLine);
 
@@ -51,10 +44,6 @@ namespace KafkaServices.Services.Consumer
         {
             var orderRequest = _consumer.Consume().Message.Value;
             await _transformBlock.SendAsync(orderRequest);
-            if (orderRequest != null)
-            {
-                Console.WriteLine($"Consumed order {orderRequest.ToString()}");
-            }
             return orderRequest;
         }
     }

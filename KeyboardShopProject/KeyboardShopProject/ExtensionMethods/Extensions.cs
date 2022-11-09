@@ -7,6 +7,7 @@ using Keyboard.DL.Interfaces;
 using Keyboard.DL.Repositorys;
 using Keyboard.Models.Models;
 using Keyboard.Models.Requests;
+using Keyboard.Models.Responses;
 
 namespace Keyboard.ShopProject.ExtensionMethods
 {
@@ -28,7 +29,9 @@ namespace Keyboard.ShopProject.ExtensionMethods
             services.AddSingleton<IOrderServices, OrderServices>();
             services.AddSingleton<BaseKafkaProducer<int, AddClientRequest>>();
             services.AddSingleton<BaseKafkaProducer<int, AddKeyboardRequest>>();
-            services.AddSingleton<BaseKafkaProducer<int, AddOrderRequest>>();
+            services.AddSingleton<BaseKafkaProducer<int, OrderResponse>>();
+            services.AddSingleton<IShoppingCartService, ShoppingCartService>();
+            services.AddSingleton<IShoppingCartMongoRepository, ShoppingCartMongoRepository>();
             return services;
         }
 

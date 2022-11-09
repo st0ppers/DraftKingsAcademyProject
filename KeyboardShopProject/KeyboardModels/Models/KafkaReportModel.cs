@@ -1,10 +1,9 @@
-﻿using Keyboard.Models.Models;
-using MessagePack;
+﻿using MessagePack;
 
-namespace Keyboard.Models.Responses
+namespace Keyboard.Models.Models
 {
     [MessagePackObject()]
-    public class OrderResponse : BaseResponse
+    public class KafkaReportModel
     {
         [Key(0)]
         public int OrderID { get; set; }
@@ -14,5 +13,6 @@ namespace Keyboard.Models.Responses
         public DateTime DateOfOrder { get; set; }
         [Key(3)]
         public List<KeyboardModel> Keyboard { get; set; }
+
     }
 }

@@ -39,7 +39,7 @@ namespace Keyboard.ShopProject.Controllers
         public async Task<IActionResult> CreateOrder([FromBody] AddOrderRequest request)
         {
             var response = await _orderServices.CreateOrder(request);
-            await _kafkaProducer.Produce(response.OrderID, request,_kafkaProducer.Settings.CurrentValue.Topic,_kafkaProducer.Config);
+            await _kafkaProducer.Produce(response.OrderID, response,_kafkaProducer.Settings.CurrentValue.Topic,_kafkaProducer.Config);
             return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
         }
 

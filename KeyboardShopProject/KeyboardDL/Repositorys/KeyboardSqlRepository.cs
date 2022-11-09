@@ -79,10 +79,9 @@ namespace Keyboard.DL.Repositorys
             {
                 try
                 {
-                    var query = "INSERT INTO Keyboard (Size,Model,Price,Quantity,Color) VALUES (@Size,@Model,@Price,@Quantity,@Color)";
+                    var query = "INSERT INTO Keyboard output INSERTED.* VALUES (@Size,@Model,@Price,@Quantity,@Color)";
                     await conn.OpenAsync();
-                    await conn.QueryFirstOrDefaultAsync<KeyboardModel>(query, keyboard);
-                    return await GetByModel(keyboard.Model);
+                    return await conn.QueryFirstOrDefaultAsync<KeyboardModel>(query, keyboard);
                 }
                 catch (Exception e)
                 {
