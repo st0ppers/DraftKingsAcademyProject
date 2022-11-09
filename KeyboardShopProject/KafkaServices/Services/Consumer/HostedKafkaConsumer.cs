@@ -1,7 +1,7 @@
 ﻿using KafkaServices.KafkaSettings;
 using Keyboard.DL.Interfaces;
 using Keyboard.Models.Models;
-using Keyboard.Models.Requests;
+using Keyboard.Models.Responses;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
@@ -9,31 +9,30 @@ namespace KafkaServices.Services.Consumer
 {
     public class HostedKafkaConsumer : IHostedService
     {
-        private KafkaOrderConsumer<int, AddOrderRequest> _consumer;
+        private KafkaOrderConsumer<int, OrderResponse> _consumer;
         private readonly IMonthlyReportRepository _monthlyReportRepository;
         private readonly IKeyboardSqlRepository _keyboardSqlRepository;
+        
 
         public HostedKafkaConsumer(IKeyboardSqlRepository keyboardSqlRepository, IOptionsMonitor<KafkaSettingsForOrder> settings, IMonthlyReportRepository monthlyReportRepository)
         {
             _keyboardSqlRepository = keyboardSqlRepository;
             _monthlyReportRepository = monthlyReportRepository;
-            _consumer = new KafkaOrderConsumer<int, AddOrderRequest>(settings, keyboardSqlRepository);
+            _consumer = new KafkaOrderConsumer<int, OrderResponse>(settings, keyboardSqlRepository);
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("Starting");
             Task.Run(async () =>
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    var o = await _consumer.Consume();
-                    if (o == null) continue;
-                    var keyboard = await _keyboardSqlRepository.GetById(o.KeyboardID);
+                    var response = await _consumer.Consume();
+                    if (response == null) continue;
                     var month = new MonthlyReportModel()
                     {
                         MonthlySales = 1,
-                        Month = o.Date.ToString("MMM"),
-                        TotalIncomeForMonth = keyboard.Price,
+                        Month = response.DateOfOrder.ToString("MMM"),
+                        TotalIncomeForMonth = response.TotalPrice,
                     };
                     await _monthlyReportRepository.UpdateMonthlyReport(month);
                 }

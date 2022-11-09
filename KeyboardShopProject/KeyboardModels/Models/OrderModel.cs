@@ -11,5 +11,6 @@ namespace Keyboard.Models.Models
         public int ClientID { get; set; }
         public decimal TotalPrice { get; set; }
         public DateTime Date { get; set; }
+        public Guid ShoppingCartID { get; set; }
     }
 }

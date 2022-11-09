@@ -1,5 +1,5 @@
-﻿using Keyboard.DL.Interfaces;
-using Keyboard.Models.Models;
+﻿using Keyboard.BL.Interfaces;
+using Keyboard.Models.Requests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Keyboard.ShopProject.Controllers
@@ -8,23 +8,35 @@ namespace Keyboard.ShopProject.Controllers
     [Route("[controller]")]
     public class ShoppingCartController : Controller
     {
-        private readonly IShoppingCartMongoRepository _shoppingCartMongoRepository;
+        private readonly IShoppingCartService _cartService;
 
-        public ShoppingCartController(IShoppingCartMongoRepository shoppingCartMongoRepository)
+        public ShoppingCartController(IShoppingCartService cartService)
         {
-            _shoppingCartMongoRepository = shoppingCartMongoRepository;
+            _cartService = cartService;
         }
 
         [HttpGet(nameof(GetContent))]
-        public async Task<IActionResult> GetContent(int id)
+        public async Task<IActionResult> GetContent(int clientId)
         {
-            return Ok(await _shoppingCartMongoRepository.GetContent(id));
+            return Ok(await _cartService.GetContent(clientId));
         }
 
         [HttpPost(nameof(AddContent))]
-        public async Task<IActionResult> AddContent(ShoppingCartModel cart)
+        public async Task<IActionResult> AddContent(ShoppingCartRequest cart)
         {
-            return Ok(await _shoppingCartMongoRepository.AddToShoppingCard(cart));
+            return Ok(await _cartService.AddToShoppingCard(cart));
+        }
+
+        [HttpDelete(nameof(DeleteKeyboardFromShoppingCart))]
+        public async Task<IActionResult> DeleteKeyboardFromShoppingCart(ShoppingCartRequest cart)
+        {
+            return Ok(await _cartService.RemoveFromShoppingCart(cart));
+        }
+
+        [HttpDelete(nameof(EmptyShoppingCart))]
+        public async Task<IActionResult> EmptyShoppingCart(int clientId)
+        {
+            return Ok(await _cartService.EmptyShoppingCart(clientId));
         }
     }
 }
