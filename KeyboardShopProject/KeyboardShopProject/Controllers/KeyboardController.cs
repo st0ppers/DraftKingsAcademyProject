@@ -1,7 +1,6 @@
-﻿using System.Net;
-using Keyboard.BL.Interfaces;
+﻿using Keyboard.BL.Interfaces;
 using Keyboard.Models.Requests;
-using Keyboard.Models.Responses;
+using Keyboard.ShopProject.Support;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Keyboard.ShopProject.Controllers
@@ -11,10 +10,12 @@ namespace Keyboard.ShopProject.Controllers
     public class KeyboardController : Controller
     {
         private readonly IKeyboardService _services;
+        private readonly CheckForStatusCode _check;
 
-        public KeyboardController(IKeyboardService services)
+        public KeyboardController(IKeyboardService services, CheckForStatusCode check)
         {
             _services = services;
+            _check = check;
         }
 
         [HttpGet(nameof(GetAllKeyboards))]
@@ -27,38 +28,29 @@ namespace Keyboard.ShopProject.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var response = await _services.GetById(id);
-            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
+            return _check.CheckKeyboardResponse(response.StatusCode,response);
         }
 
         [HttpPost(nameof(AddKeyboard))]
         public async Task<IActionResult> AddKeyboard([FromBody] AddKeyboardRequest request)
         {
             var response = await _services.CreateKeyboard(request);
-            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
+            return _check.CheckKeyboardResponse(response.StatusCode, response);
         }
 
         [HttpPut(nameof(UpdateKeyboard))]
         public async Task<IActionResult> UpdateKeyboard([FromBody] UpdateKeyboardRequest request)
         {
             var response = await _services.UpdateKeyboard(request);
-            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
+            return _check.CheckKeyboardResponse(response.StatusCode, response);
         }
 
         [HttpDelete(nameof(DeleteKeyboard))]
         public async Task<IActionResult> DeleteKeyboard(int id)
         {
             var response = await _services.DeleteKeyboard(id);
-            return CheckIfStatusCodeIsNotFound(response.StatusCode, response);
+            return _check.CheckKeyboardResponse(response.StatusCode, response);
         }
-        [HttpOptions]
-        public IActionResult CheckIfStatusCodeIsNotFound(HttpStatusCode code, KeyboardResponse response)
-        {
-            if (code == HttpStatusCode.NotFound)
-            {
-                return NotFound(response);
-            }
 
-            return Ok(response);
-        }
     }
 }

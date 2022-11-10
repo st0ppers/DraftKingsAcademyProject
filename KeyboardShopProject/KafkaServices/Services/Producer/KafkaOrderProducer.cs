@@ -1,12 +1,11 @@
 ﻿using Confluent.Kafka;
 using KafkaServices.KafkaSettings;
 using Keyboard.Models.Models;
-using Keyboard.Models.Responses;
 using Microsoft.Extensions.Options;
 
 namespace KafkaServices.Services.Producer
 {
-    public class KafkaOrderProducer : BaseKafkaProducer<int, KafkaReportModelForOrder>
+    public class KafkaOrderProducer : BaseKafkaProducer<Guid, KafkaReportModelForOrder>
     {
         public ProducerConfig Config { get; set; }
         public IOptionsMonitor<KafkaSettingsForOrder> Settings { get; set; }

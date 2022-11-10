@@ -1,5 +1,6 @@
 ﻿using Keyboard.BL.Interfaces;
 using Keyboard.Models.Requests;
+using Keyboard.ShopProject.Support;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Keyboard.ShopProject.Controllers
@@ -9,34 +10,40 @@ namespace Keyboard.ShopProject.Controllers
     public class ShoppingCartController : Controller
     {
         private readonly IShoppingCartService _cartService;
+        private readonly CheckForStatusCode _check;
 
-        public ShoppingCartController(IShoppingCartService cartService)
+        public ShoppingCartController(IShoppingCartService cartService, CheckForStatusCode check)
         {
             _cartService = cartService;
+            _check = check;
         }
 
         [HttpGet(nameof(GetContent))]
         public async Task<IActionResult> GetContent(int clientId)
         {
-            return Ok(await _cartService.GetContent(clientId));
+            var response = await _cartService.GetContent(clientId);
+            return _check.CheckShoppingCartResponse(response.StatusCode, response);
         }
 
         [HttpPost(nameof(AddContent))]
         public async Task<IActionResult> AddContent(ShoppingCartRequest cart)
         {
-            return Ok(await _cartService.AddToShoppingCard(cart));
+            var response = await _cartService.AddToShoppingCard(cart);
+            return _check.CheckShoppingCartResponse(response.StatusCode, response);
         }
 
         [HttpDelete(nameof(DeleteKeyboardFromShoppingCart))]
         public async Task<IActionResult> DeleteKeyboardFromShoppingCart(ShoppingCartRequest cart)
         {
-            return Ok(await _cartService.RemoveFromShoppingCart(cart));
+            var response = await _cartService.RemoveFromShoppingCart(cart);
+            return _check.CheckShoppingCartResponse(response.StatusCode, response);
         }
 
         [HttpDelete(nameof(EmptyShoppingCart))]
         public async Task<IActionResult> EmptyShoppingCart(int clientId)
         {
-            return Ok(await _cartService.EmptyShoppingCart(clientId));
+            var response = await _cartService.EmptyShoppingCart(clientId);
+            return _check.CheckShoppingCartResponse(response.StatusCode, response);
         }
     }
 }

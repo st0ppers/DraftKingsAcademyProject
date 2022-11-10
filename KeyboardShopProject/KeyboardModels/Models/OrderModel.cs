@@ -1,14 +1,16 @@
-﻿using MessagePack;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
 
 namespace Keyboard.Models.Models
 {
     public class OrderModel 
     {
-        public int OrderID { get; set; }
-        public int KeyboardID { get; set; }
-        public int ClientID { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.String)]
+        public Guid OrderID { get; set; } = Guid.NewGuid();
+        public List<KeyboardModel> Keyboards { get; set; }
+        public int ClientId { get; set; }
         public decimal TotalPrice { get; set; }
         public DateTime Date { get; set; }
-        public Guid ShoppingCartID { get; set; }
     }
 }

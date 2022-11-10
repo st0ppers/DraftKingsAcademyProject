@@ -1,6 +1,4 @@
-﻿using MessagePack;
-
-namespace Keyboard.Models.Models
+﻿namespace Keyboard.Models.Models
 {
     public class ClientModel
     {

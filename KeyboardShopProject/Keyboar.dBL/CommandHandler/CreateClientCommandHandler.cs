@@ -17,7 +17,7 @@ namespace Keyboard.BL.CommandHandler
         private readonly IMapper _mapper;
         private readonly KafkaClientProducer _kafkaProducer;
 
-        public CreateClientCommandHandler(IClientSqlRepository clientSqlRepository, IMapper mapper,IOptionsMonitor<KafkaSettingsForClient> settings)
+        public CreateClientCommandHandler(IClientSqlRepository clientSqlRepository, IMapper mapper, IOptionsMonitor<KafkaSettingsForClient> settings)
         {
             _clientSqlRepository = clientSqlRepository;
             _mapper = mapper;
@@ -27,7 +27,7 @@ namespace Keyboard.BL.CommandHandler
         public async Task<ClientResponse> Handle(CreateClientCommand request, CancellationToken cancellationToken)
         {
             var isClientExist = await _clientSqlRepository.GetByFullName(request.client.FullName);
-            if (isClientExist  != null)
+            if (isClientExist != null)
             {
                 return new ClientResponse()
                 {
@@ -38,12 +38,7 @@ namespace Keyboard.BL.CommandHandler
 
             var client = _mapper.Map<ClientModel>(request.client);
             var result = await _clientSqlRepository.CreateClient(client);
-            var kafkaReport = new KafkaReportModelForClient()
-            {
-                Address = result.Address,
-                Age = result.Age,
-                FullName = result.FullName
-            };
+            var kafkaReport = _mapper.Map<KafkaReportModelForClient>(result);
             await _kafkaProducer.Produce(result.ClientID, kafkaReport, _kafkaProducer.Settings.CurrentValue.Topic, _kafkaProducer.Config);
             return new ClientResponse()
             {

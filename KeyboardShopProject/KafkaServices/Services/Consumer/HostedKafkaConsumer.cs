@@ -8,13 +8,13 @@ namespace KafkaServices.Services.Consumer
 {
     public class HostedKafkaConsumer : IHostedService
     {
-        private readonly KafkaOrderConsumer<int, KafkaReportModelForOrder> _consumer;
+        private readonly KafkaOrderConsumer<Guid, KafkaReportModelForOrder> _consumer;
         private readonly IMonthlyReportRepository _monthlyReportRepository;
 
         public HostedKafkaConsumer(IOptionsMonitor<KafkaSettingsForOrder> settings, IMonthlyReportRepository monthlyReportRepository)
         {
             _monthlyReportRepository = monthlyReportRepository;
-            _consumer = new KafkaOrderConsumer<int, KafkaReportModelForOrder>(settings);
+            _consumer = new KafkaOrderConsumer<Guid, KafkaReportModelForOrder>(settings);
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -27,7 +27,7 @@ namespace KafkaServices.Services.Consumer
                     var month = new MonthlyReportModel()
                     {
                         MonthlySales = 1,
-                        Month = response.DateOfOrder.ToString("MMM"),
+                        Month = response.Date.ToString("MMM"),
                         TotalIncomeForMonth = response.TotalPrice,
                     };
                     await _monthlyReportRepository.UpdateMonthlyReport(month);

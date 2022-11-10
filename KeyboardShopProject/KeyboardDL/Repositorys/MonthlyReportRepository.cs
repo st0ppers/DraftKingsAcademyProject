@@ -37,6 +37,24 @@ namespace Keyboard.DL.Repositorys
             }
         }
 
+        public async Task<MonthlyReportModel> Insert(MonthlyReportModel model)
+        {
+            await using (var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                try
+                {
+                    var addQuery = "INSERT INTO MonthlyReport VALUES (@Month,@MonthlySales,@TotalIncomeForMonth)";
+                    await conn.OpenAsync();
+                    return await conn.QueryFirstOrDefaultAsync(addQuery, model);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"Error from {nameof(Insert)} with error {e.Message}");
+                    throw;
+                }
+            }
+        }
+
         public async Task<MonthlyReportModel> UpdateMonthlyReport(MonthlyReportModel model)
         {
             await using (var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
@@ -46,13 +64,8 @@ namespace Keyboard.DL.Repositorys
                     var data = GetByMonth();
                     if (model.Month != data.Result.Month)
                     {
-                        var deleteQuery = "DELETE  FROM MonthlyReport";
-                        await conn.OpenAsync();
-                        await conn.QueryFirstOrDefaultAsync(deleteQuery);
-
-                        var addQuery =
-                            "INSERT INTO MonthlyReport VALUES (@Month,@MonthlySales,@TotalIncomeForMonth)";
-                        return await conn.QueryFirstOrDefaultAsync(addQuery, model);
+                        await DeleteReport();
+                        return await Insert(model);
                     }
                     var reportInDatabase = await GetByMonth();
                     if (reportInDatabase != null)
@@ -66,7 +79,25 @@ namespace Keyboard.DL.Repositorys
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"Error from {nameof(GetByMonth)} with error {e.Message}");
+                    _logger.LogError($"Error from {nameof(UpdateMonthlyReport)} with error {e.Message}");
+                    throw;
+                }
+            }
+        }
+
+        public async Task<MonthlyReportModel> DeleteReport()
+        {
+            await using (var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                try
+                {
+                    var deleteQuery = "DELETE  FROM MonthlyReport";
+                    await conn.OpenAsync();
+                    return await conn.QueryFirstOrDefaultAsync<MonthlyReportModel>(deleteQuery);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"Error from {nameof(DeleteReport)} with error {e.Message}");
                     throw;
                 }
             }

@@ -21,6 +21,7 @@ builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
 
 //HealthCheck
 builder.Services.AddHealthChecks().AddCheck<SqlHealthCheck>("SQL Server");
+builder.Services.AddHealthChecks().AddCheck<MongoHealthCheck>("Mongo connection");
 
 builder.Services.AddMediatR(typeof(CreateClientCommandHandler).Assembly);
 
