@@ -98,9 +98,6 @@ namespace Keyboard.BL.Services
                     ClientId = order.ClientID,
                     KeyboardId = k.KeyboardID
                 });
-                var keyboard = await _keyboardSqlRepository.GetById(k.KeyboardID);
-                keyboard.Quantity--;
-                await _keyboardSqlRepository.UpdateKeyboard(keyboard);
             }
 
             var kafkaOrder = new KafkaReportModelForOrder()
