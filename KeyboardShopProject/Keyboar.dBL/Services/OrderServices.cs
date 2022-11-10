@@ -13,184 +13,112 @@ namespace Keyboard.BL.Services
 {
     public class OrderServices : IOrderServices
     {
-        private readonly IOrderSqlRepository _orderSqlRepository;
-        private readonly IKeyboardSqlRepository _keyboardSqlRepository;
-        private readonly IClientSqlRepository _clientSqlRepository;
+        private readonly IOrderMongoRepository _repository;
         private readonly IShoppingCartMongoRepository _shoppingCartMongoRepository;
-        private readonly KafkaOrderProducer _kafkaProducer;
+        private readonly IClientSqlRepository _clientSqlRepository;
+        private readonly IKeyboardSqlRepository _keyboardSqlRepository;
+        private readonly KafkaOrderProducer _producer;
         private readonly IMapper _mapper;
 
-
-        public OrderServices(IOrderSqlRepository orderSqlRepository, IMapper mapper, IKeyboardSqlRepository keyboardSqlRepository, IClientSqlRepository clientSqlRepository, IShoppingCartMongoRepository shoppingCartMongoRepository, IOptionsMonitor<KafkaSettingsForOrder> settings)
+        public OrderServices(IOrderMongoRepository repository, IMapper mapper, IShoppingCartMongoRepository shoppingCartMongoRepository,
+            IOptionsMonitor<KafkaSettingsForOrder> settings, IClientSqlRepository clientSqlRepository, IKeyboardSqlRepository keyboardSqlRepository)
         {
-            _orderSqlRepository = orderSqlRepository;
+            _repository = repository;
             _mapper = mapper;
-            _keyboardSqlRepository = keyboardSqlRepository;
-            _clientSqlRepository = clientSqlRepository;
             _shoppingCartMongoRepository = shoppingCartMongoRepository;
-            _kafkaProducer = new KafkaOrderProducer(settings);
+            _clientSqlRepository = clientSqlRepository;
+            _keyboardSqlRepository = keyboardSqlRepository;
+            _producer = new KafkaOrderProducer(settings);
         }
 
-        public async Task<IEnumerable<OrderModel>> GetAllOrders()
+        public async Task<OrderResponse> GetById(Guid id)
         {
-            return await _orderSqlRepository.GetAllOrders();
-        }
-
-        public async Task<OrderResponse> GetById(int id)
-        {
-            if (await _orderSqlRepository.GetById(id) == null)
+            var order = await _repository.GetOrder(id);
+            foreach (var k in order.Keyboards)
             {
-                return new OrderResponse()
-                {
-                    Message = "Order with that id does not exist",
-                    StatusCode = HttpStatusCode.NotFound
-                };
+                order.TotalPrice += k.Price;
             }
-
-            var order = await _orderSqlRepository.GetById(id);
             return new OrderResponse()
             {
-                OrderID = order.OrderID,
-                DateOfOrder = order.Date,
-                TotalPrice = order.TotalPrice,
                 StatusCode = HttpStatusCode.OK,
-                Keyboard = new List<KeyboardModel>()
-                {
-                  await _keyboardSqlRepository.GetById(order.KeyboardID)
-                }
+                Order = order
             };
         }
 
-        public async Task<OrderResponse> CreateOrder(AddOrderRequest request)
+        public async Task<OrderResponse> CreateOrder(int clientId)
         {
-            var order = _mapper.Map<OrderModel>(request);
-            var shoppingCart = await _shoppingCartMongoRepository.GetContent(order.ClientID);
-            var client = await _clientSqlRepository.GetById(request.ClientID);
-            if (client == null)
-            {
-                return new OrderResponse()
-                {
-                    Message = "Client with that Id doesn't exist",
-                    StatusCode = HttpStatusCode.NotFound,
-                };
-            }
+            var shoppingCart = await _shoppingCartMongoRepository.GetContent(clientId);
+            var order = _mapper.Map<OrderModel>(shoppingCart);
+            order.Date=DateTime.Now;
             if (shoppingCart == null)
             {
                 return new OrderResponse()
                 {
-                    Message = "Cannot create order with empty shopping cart",
-                    StatusCode = HttpStatusCode.BadRequest,
+                    StatusCode = HttpStatusCode.NotFound,
+                    Message = "Your shopping cart is empty"
                 };
             }
-            foreach (var k in shoppingCart.Keyboards)
+            if (await _clientSqlRepository.GetById(shoppingCart.ClientId) == null)
             {
-                order.TotalPrice += k.Price;
-            }
-            var keyboards = new List<KeyboardModel>();
-            order.ShoppingCartID = shoppingCart.Id;
-            var result = await _orderSqlRepository.CreateOrder(order);
-            foreach (var k in shoppingCart.Keyboards)
-            {
-                keyboards.Add(k);
-                await _orderSqlRepository.AddOrderedKeyboards(result, k.KeyboardID);
-                await _shoppingCartMongoRepository.RemoveFromShoppingCart(new ShoppingCartRequest()
+                return new OrderResponse()
                 {
-                    ClientId = order.ClientID,
-                    KeyboardId = k.KeyboardID
-                });
+                    StatusCode = HttpStatusCode.NotFound,
+                    Message = "Client with that id doesn't exist"
+                };
+            }
+            foreach (var k in order.Keyboards)
+            {
+                if (await _keyboardSqlRepository.GetById(k.KeyboardID) == null)
+                {
+                    return new OrderResponse()
+                    {
+                        StatusCode = HttpStatusCode.NotFound,
+                        Message = "Keyboard with that id doesn't exist"
+                    };
+                }
             }
 
-            var kafkaOrder = new KafkaReportModelForOrder()
-            {
-                Keyboards = keyboards,
-                DateOfOrder = order.Date,
-                OrderID = result.OrderID,
-                TotalPrice = result.TotalPrice
-            };
-            await _kafkaProducer.Produce(result.OrderID, kafkaOrder, _kafkaProducer.Settings.CurrentValue.Topic, _kafkaProducer.Config);
+            var report = _mapper.Map<KafkaReportModelForOrder>(order);
+            await _repository.CreateOrder(order);
+            _producer.Produce(report.OrderID, report, _producer.Settings.CurrentValue.Topic, _producer.Config);
+            await _shoppingCartMongoRepository.EmptyShoppingCart(clientId);
             return new OrderResponse()
             {
-                StatusCode = HttpStatusCode.Created,
-                Message = $"Successfully create order with id {result.OrderID}",
-                OrderID = result.OrderID,
-                DateOfOrder = result.Date,
-                TotalPrice = result.TotalPrice,
-                Keyboard = keyboards
+                Order = order,
+                StatusCode = HttpStatusCode.Created
             };
         }
 
         public async Task<OrderResponse> UpdateOrder(UpdateOrderRequest request)
         {
-            var keyboard = await _keyboardSqlRepository.GetById(request.KeyboardID);
-            var client = await _clientSqlRepository.GetById(request.ClientID);
-            if (keyboard == null)
-            {
-                return new OrderResponse()
-                {
-                    Message = "Keyboard with that Id doesn't exist",
-                    StatusCode = HttpStatusCode.NotFound,
-                };
-            }
-
-            if (client == null)
-            {
-                return new OrderResponse()
-                {
-                    Message = "Client with that Id doesn't exist",
-                    StatusCode = HttpStatusCode.NotFound,
-                };
-            }
-
-            if (await _orderSqlRepository.GetById(request.OrderID) == null)
-            {
-                return new OrderResponse()
-                {
-                    Message = "No order with that name exists",
-                    StatusCode = HttpStatusCode.NotFound,
-                };
-            }
-
             var order = _mapper.Map<OrderModel>(request);
-            order.TotalPrice = keyboard.Price;
-            var result = await _orderSqlRepository.UpdateOrder(order);
-
+            if (await GetById(request.OrderID) == null)
+            {
+                return new OrderResponse()
+                {
+                    StatusCode = HttpStatusCode.NotFound,
+                    Message = "Order with that id doesn't exist"
+                };
+            }
+            await _repository.UpdateOrder(order);
+            foreach (var k in order.Keyboards)
+            {
+                order.TotalPrice += k.Price;
+            }
             return new OrderResponse()
             {
-                Message = $"Successfully updated order with id {result.OrderID}",
                 StatusCode = HttpStatusCode.OK,
-                OrderID = result.OrderID,
-                DateOfOrder = result.Date,
-                TotalPrice = result.TotalPrice,
-                Keyboard = new List<KeyboardModel>()
-                {
-                    keyboard
-                }
+                Order = order
             };
         }
 
-        public async Task<OrderResponse> DeleteOrder(int id)
+        public async Task<OrderResponse> DeleteOrder(Guid id)
         {
-            if (await _orderSqlRepository.GetById(id) == null)
-            {
-                return new OrderResponse()
-                {
-                    Message = "No order with that name exists",
-                    StatusCode = HttpStatusCode.NotFound,
-                };
-            }
-
-            var order = await _orderSqlRepository.DeleteOrder(id);
+            var order = await _repository.DeleteOrder(id);
             return new OrderResponse()
             {
-                Message = $"Successfully deleted order with id {order.OrderID}",
                 StatusCode = HttpStatusCode.NoContent,
-                OrderID = order.OrderID,
-                DateOfOrder = order.Date,
-                TotalPrice = order.TotalPrice,
-                Keyboard = new List<KeyboardModel>()
-                {
-                    await _keyboardSqlRepository.GetById(order.KeyboardID)
-                }
+                Order = order
             };
         }
     }

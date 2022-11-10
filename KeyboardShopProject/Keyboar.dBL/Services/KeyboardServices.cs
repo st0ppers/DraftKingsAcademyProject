@@ -69,14 +69,7 @@ namespace Keyboard.BL.Services
 
             var keyboard = _mapper.Map<KeyboardModel>(request);
             var result = await _repository.CreateKeyboard(keyboard);
-            var kafkaReport = new KafkaReportModelForKeyboard()
-            {
-                Price = result.Price,
-                Model = result.Model,
-                Quantity = result.Quantity,
-                Color = result.Color,
-                Size = result.Size
-            };
+            var kafkaReport = _mapper.Map<KafkaReportModelForKeyboard>(result);
             await _kafkaProducer.Produce(result.KeyboardID, kafkaReport, _kafkaProducer.Settings.CurrentValue.Topic,
                 _kafkaProducer.Config);
             return new KeyboardResponse()

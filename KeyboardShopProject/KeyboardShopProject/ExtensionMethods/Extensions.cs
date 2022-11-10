@@ -1,4 +1,5 @@
-﻿using KafkaServices.KafkaSettings;
+﻿using KafkaServices.Dataflow;
+using KafkaServices.KafkaSettings;
 using KafkaServices.Services.Consumer;
 using KafkaServices.Services.Producer;
 using Keyboard.BL.Interfaces;
@@ -6,8 +7,7 @@ using Keyboard.BL.Services;
 using Keyboard.DL.Interfaces;
 using Keyboard.DL.Repositorys;
 using Keyboard.Models.Models;
-using Keyboard.Models.Requests;
-using Keyboard.Models.Responses;
+using Keyboard.ShopProject.Support;
 
 namespace Keyboard.ShopProject.ExtensionMethods
 {
@@ -17,9 +17,9 @@ namespace Keyboard.ShopProject.ExtensionMethods
         {
             services.AddSingleton<IKeyboardSqlRepository, KeyboardSqlRepository>();
             services.AddSingleton<IClientSqlRepository, ClientSqlRepository>();
-            services.AddSingleton<IOrderSqlRepository, OrderSqlRepository>();
             services.AddSingleton<IMonthlyReportRepository, MonthlyReportRepository>();
             services.AddSingleton<IShoppingCartMongoRepository, ShoppingCartMongoRepository>();
+            services.AddSingleton<IOrderMongoRepository, OrderMongoRepository>();
             return services;
         }
 
@@ -29,9 +29,10 @@ namespace Keyboard.ShopProject.ExtensionMethods
             services.AddSingleton<IOrderServices, OrderServices>();
             services.AddSingleton<BaseKafkaProducer<int, KafkaReportModelForClient>>();
             services.AddSingleton<BaseKafkaProducer<int, KafkaReportModelForKeyboard>>();
-            services.AddSingleton<BaseKafkaProducer<int, KafkaReportModelForOrder>>();
+            services.AddSingleton<BaseKafkaProducer<Guid, KafkaReportModelForOrder>>();
             services.AddSingleton<IShoppingCartService, ShoppingCartService>();
             services.AddSingleton<IShoppingCartMongoRepository, ShoppingCartMongoRepository>();
+            services.AddSingleton<CheckForStatusCode>();
             return services;
         }
 

@@ -1,6 +1,4 @@
-﻿using MessagePack;
-
-namespace Keyboard.Models.Requests
+﻿namespace Keyboard.Models.Requests
 {
     public class AddKeyboardRequest
     {

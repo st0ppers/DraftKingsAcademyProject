@@ -39,6 +39,7 @@ namespace Keyboard.DL.Repositorys
         {
             var cart = await GetContent(request.ClientId);
             var keyboardToAdd = await _keyboardSqlRepository.GetById(request.KeyboardId);
+            cart.TotalPrice += keyboardToAdd.Price;
             cart.Keyboards.Add(keyboardToAdd);
             await _collection.ReplaceOneAsync(x => x.ClientId == request.ClientId, cart);
             return cart;
@@ -49,7 +50,8 @@ namespace Keyboard.DL.Repositorys
             var cart = await GetContent(request.ClientId);
             var keyboard = cart.Keyboards.FirstOrDefault(x => x.KeyboardID == request.KeyboardId);
             cart.Keyboards.Remove(keyboard);
-            await _collection.ReplaceOneAsync(x=>x.ClientId==request.ClientId, cart);
+            cart.TotalPrice -= keyboard.Price;
+            await _collection.ReplaceOneAsync(x => x.ClientId == request.ClientId, cart);
             return cart;
         }
 

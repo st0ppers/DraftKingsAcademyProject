@@ -14,6 +14,10 @@ namespace Keyboard.ShopProject.AutoMapper
             CreateMap<UpdateClientRequest, ClientModel>();
             CreateMap<AddOrderRequest, OrderModel>();
             CreateMap<UpdateOrderRequest, OrderModel>();
+            CreateMap<ShoppingCartModel, OrderModel>();
+            CreateMap<OrderModel, KafkaReportModelForOrder>();
+            CreateMap<KeyboardModel, KafkaReportModelForKeyboard>();
+            CreateMap<ClientModel, KafkaReportModelForClient>();
         }
     }
 }

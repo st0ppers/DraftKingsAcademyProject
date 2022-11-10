@@ -116,7 +116,7 @@ namespace Keyboard.DL.Repositorys
             {
                 try
                 {
-                    var query = "DELETE FROM Keyboard WHERE KeyboardID=@KeyboardID";
+                    var query = "DELETE FROM Keyboard OUTPUT Deleted.* WHERE KeyboardID=@KeyboardID";
                     await conn.OpenAsync();
                     return await conn.QueryFirstOrDefaultAsync<KeyboardModel>(query, new { KeyboardID = id });
                 }
