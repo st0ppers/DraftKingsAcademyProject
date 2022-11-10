@@ -74,6 +74,8 @@ namespace Keyboard.BL.Services
             if (keyboardToAdd.Quantity >= 1)
             {
                 response.ShoppingCart = await _shoppingCartRepository.AddToShoppingCard(request);
+                keyboardToAdd.Quantity--;
+                await _keyboardSqlRepository.UpdateKeyboard(keyboardToAdd);
             }
             else
             {

@@ -8,7 +8,7 @@ namespace KafkaServices.Services.Consumer
 {
     public class HostedKafkaConsumer : IHostedService
     {
-        private KafkaOrderConsumer<int, KafkaReportModelForOrder> _consumer;
+        private readonly KafkaOrderConsumer<int, KafkaReportModelForOrder> _consumer;
         private readonly IMonthlyReportRepository _monthlyReportRepository;
 
         public HostedKafkaConsumer(IOptionsMonitor<KafkaSettingsForOrder> settings, IMonthlyReportRepository monthlyReportRepository)
