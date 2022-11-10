@@ -1,6 +1,7 @@
 ﻿using Keyboard.BL.Interfaces;
 using Keyboard.Models.Requests;
 using Keyboard.ShopProject.Support;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Keyboard.ShopProject.Controllers
@@ -45,6 +46,7 @@ namespace Keyboard.ShopProject.Controllers
             return _check.CheckKeyboardResponse(response.StatusCode, response);
         }
 
+        [Authorize]
         [HttpDelete(nameof(DeleteKeyboard))]
         public async Task<IActionResult> DeleteKeyboard(int id)
         {
