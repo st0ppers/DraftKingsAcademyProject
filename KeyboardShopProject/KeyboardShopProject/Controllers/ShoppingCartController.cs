@@ -1,6 +1,7 @@
 ﻿using Keyboard.BL.Interfaces;
 using Keyboard.Models.Requests;
 using Keyboard.ShopProject.Support;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Keyboard.ShopProject.Controllers
@@ -39,6 +40,7 @@ namespace Keyboard.ShopProject.Controllers
             return _check.CheckShoppingCartResponse(response.StatusCode, response);
         }
 
+        [Authorize]
         [HttpDelete(nameof(EmptyShoppingCart))]
         public async Task<IActionResult> EmptyShoppingCart(int clientId)
         {

@@ -1,4 +1,5 @@
-﻿using KafkaServices.Dataflow;
+﻿using System.Text;
+using KafkaServices.Dataflow;
 using KafkaServices.KafkaSettings;
 using KafkaServices.Services.Consumer;
 using KafkaServices.Services.Producer;
@@ -8,6 +9,8 @@ using Keyboard.DL.Interfaces;
 using Keyboard.DL.Repositorys;
 using Keyboard.Models.Models;
 using Keyboard.ShopProject.Support;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Keyboard.ShopProject.ExtensionMethods
 {

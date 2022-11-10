@@ -2,6 +2,7 @@
 using Keyboard.Models.Requests;
 using Keyboard.ShopProject.Support;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Keyboard.ShopProject.Controllers
@@ -46,6 +47,7 @@ namespace Keyboard.ShopProject.Controllers
             return _check.CheckClientResponse(response.StatusCode, response);
         }
 
+        [Authorize]
         [HttpDelete(nameof(DeleteClient))]
         public async Task<IActionResult> DeleteClient(int id)
         {
