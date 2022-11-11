@@ -16,7 +16,8 @@ namespace Keyboard.BL.Services
         private readonly IKeyboardSqlRepository _repository;
         private readonly IMapper _mapper;
         private readonly KafkaKeyboardProducer _kafkaProducer;
-        public KeyboardServices(IKeyboardSqlRepository repository, IMapper mapper,IOptionsMonitor<KafkaSettingsForKeyboard> settings)
+
+        public KeyboardServices(IKeyboardSqlRepository repository, IMapper mapper, IOptionsMonitor<KafkaSettingsForKeyboard> settings)
         {
             _repository = repository;
             _mapper = mapper;
@@ -49,6 +50,24 @@ namespace Keyboard.BL.Services
 
         public async Task<KeyboardResponse> GetByModel(string name)
         {
+            if (name == null)
+            {
+                return new KeyboardResponse()
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = "Module name cannot be empty"
+                };
+            }
+
+            if (await _repository.GetByModel(name) == null)
+            {
+                return new KeyboardResponse()
+                {
+                    StatusCode = HttpStatusCode.NotFound,
+                    Message = "Module with that name doesn't exist"
+                };
+            }
+
             var keyboard = await _repository.GetByModel(name);
             return new KeyboardResponse()
             {
@@ -82,8 +101,7 @@ namespace Keyboard.BL.Services
 
         public async Task<KeyboardResponse> UpdateKeyboard(UpdateKeyboardRequest request)
         {
-            var keyboardById = await _repository.GetById(request.KeyboardID);
-            if (keyboardById == null)
+            if (await _repository.GetById(request.KeyboardID) == null)
             {
                 return new KeyboardResponse()
                 {

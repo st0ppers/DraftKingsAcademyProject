@@ -2,13 +2,13 @@
 
 namespace KafkaServices.Dataflow
 {
-    public class Dataflow<Tvalue>
+    public class Dataflow<Tvalue> 
     {
         private readonly TransformBlock<Tvalue, string> TransformBlock;
 
         public Dataflow()
         {
-            TransformBlock = new TransformBlock<Tvalue, string>(request => $"Ordered {typeof(Tvalue)}");
+            TransformBlock = new TransformBlock<Tvalue, string>(request => $"Ordered {typeof(Tvalue).Name}");
             var actionBlock = new ActionBlock<string>(Console.WriteLine);
             TransformBlock.LinkTo(actionBlock);
         }

@@ -1,6 +1,4 @@
-﻿using System.Text;
-using KafkaServices.Dataflow;
-using KafkaServices.KafkaSettings;
+﻿using KafkaServices.KafkaSettings;
 using KafkaServices.Services.Consumer;
 using KafkaServices.Services.Producer;
 using Keyboard.BL.Interfaces;
@@ -9,8 +7,6 @@ using Keyboard.DL.Interfaces;
 using Keyboard.DL.Repositorys;
 using Keyboard.Models.Models;
 using Keyboard.ShopProject.Support;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Keyboard.ShopProject.ExtensionMethods
 {
@@ -25,7 +21,6 @@ namespace Keyboard.ShopProject.ExtensionMethods
             services.AddSingleton<IOrderMongoRepository, OrderMongoRepository>();
             return services;
         }
-
         public static IServiceCollection RegisterServices(this IServiceCollection services)
         {
             services.AddSingleton<IKeyboardService, KeyboardServices>();
@@ -38,13 +33,11 @@ namespace Keyboard.ShopProject.ExtensionMethods
             services.AddSingleton<CheckForStatusCode>();
             return services;
         }
-
         public static IServiceCollection RegisterIHostedServices(this IServiceCollection services)
         {
             services.AddHostedService<HostedKafkaConsumer>();
             return services;
         }
-
         public static IServiceCollection RegisterIOptionsMonitor(this IServiceCollection service, WebApplicationBuilder builder)
         {
             builder.Services.Configure<KafkaSettingsForKeyboard>(builder.Configuration.GetSection(nameof(KafkaSettingsForKeyboard)));

@@ -73,7 +73,9 @@ namespace Keyboard.BL.Services
             }
             if (keyboardToAdd.Quantity >= 1)
             {
-                response.ShoppingCart = await _shoppingCartRepository.AddToShoppingCard(request);
+                response.ShoppingCart.Keyboards.Add(keyboardToAdd);
+                response.ShoppingCart.TotalPrice += keyboardToAdd.Price;
+                response.ShoppingCart = await _shoppingCartRepository.AddToShoppingCard(response.ShoppingCart);
                 keyboardToAdd.Quantity--;
                 await _keyboardSqlRepository.UpdateKeyboard(keyboardToAdd);
             }
@@ -97,7 +99,8 @@ namespace Keyboard.BL.Services
 
         public async Task<ShoppingCartResponse> RemoveFromShoppingCart(ShoppingCartRequest request)
         {
-            var keyboardToRemove = await _keyboardSqlRepository.GetById(request.KeyboardId);
+            var response = await GetContent(request.ClientId);
+            var keyboardToRemove = response.ShoppingCart.Keyboards.FirstOrDefault(x => x.KeyboardID == request.KeyboardId);
             var client = await _clientSqlRepository.GetById(request.ClientId);
             if (client == null)
             {
@@ -116,7 +119,6 @@ namespace Keyboard.BL.Services
                     Message = "Keyboard  doesn't exist"
                 };
             }
-            var response = await GetContent(request.ClientId);
             if (response == null)
             {
                 return new ShoppingCartResponse()
@@ -137,13 +139,18 @@ namespace Keyboard.BL.Services
                 };
             }
 
-            var result = await _shoppingCartRepository.RemoveFromShoppingCart(request);
+            var keyboardInSql = await _keyboardSqlRepository.GetById(request.KeyboardId);
+            keyboardInSql.Quantity++;
+            await _keyboardSqlRepository.UpdateKeyboard(keyboardInSql);
+
+            response.ShoppingCart.Keyboards.Remove(keyboardToRemove);
+            response.ShoppingCart.TotalPrice -= keyboardToRemove.Price;
+            var result = await _shoppingCartRepository.RemoveFromShoppingCart(response.ShoppingCart);
             return new ShoppingCartResponse()
             {
                 StatusCode = HttpStatusCode.OK,
                 ShoppingCart = result
             };
-
         }
 
         public async Task<ShoppingCartResponse> EmptyShoppingCart(int clientID)

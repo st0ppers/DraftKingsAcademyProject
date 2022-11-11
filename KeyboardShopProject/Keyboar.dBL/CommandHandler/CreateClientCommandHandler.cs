@@ -26,8 +26,8 @@ namespace Keyboard.BL.CommandHandler
 
         public async Task<ClientResponse> Handle(CreateClientCommand request, CancellationToken cancellationToken)
         {
-            var isClientExist = await _clientSqlRepository.GetByFullName(request.client.FullName);
-            if (isClientExist != null)
+            var doesClientExist = await _clientSqlRepository.GetByFullName(request.client.FullName);
+            if (doesClientExist != null)
             {
                 return new ClientResponse()
                 {

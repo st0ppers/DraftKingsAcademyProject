@@ -15,7 +15,6 @@ namespace Keyboard.ShopProject.Middleware
         public CustomException(string message, params object[] args)
             : base(string.Format(CultureInfo.CurrentCulture, message, args))
         {
-
         }
     }
 }

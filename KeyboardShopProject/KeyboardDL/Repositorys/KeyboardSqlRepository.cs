@@ -5,7 +5,6 @@ using Keyboard.Models.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-
 namespace Keyboard.DL.Repositorys
 {
     public class KeyboardSqlRepository : IKeyboardSqlRepository
