@@ -1,7 +1,8 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Keyboard.DL.Interfaces;
+using Keyboard.Models.Commands;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -12,13 +13,13 @@ namespace Keyboard.ShopProject.Controllers
     [Route("[controller]")]
     public class GetToken : Controller
     {
-        private readonly IClientSqlRepository _clientSqlRepository;
         private readonly IConfiguration _config;
+        private readonly IMediator _mediator;
 
-        public GetToken(IClientSqlRepository clientSqlRepository, IConfiguration config)
+        public GetToken(IConfiguration config, IMediator mediator)
         {
-            _clientSqlRepository = clientSqlRepository;
             _config = config;
+            _mediator = mediator;
         }
 
         [AllowAnonymous]
@@ -27,17 +28,17 @@ namespace Keyboard.ShopProject.Controllers
         {
             if (clientId != null)
             {
-                var user = await _clientSqlRepository.GetById(clientId);
+                var user = await _mediator.Send(new GetClientByIdCommand(clientId));
 
-                if (user != null)
+                if (user.Client != null)
                 {
                     var claims = new List<Claim>
                     {
                         new Claim(JwtRegisteredClaimNames.Sub, _config.GetSection("Jwt:Subject").Value),
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                         new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
-                        new Claim("UserId", user.ClientID.ToString()),
-                        new Claim("DisplayName", user.FullName?? string.Empty),
+                        new Claim("UserId", user.Client.ClientID.ToString()),
+                        new Claim("DisplayName", user.Client.FullName?? string.Empty),
                     };
 
                     var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
@@ -52,17 +53,6 @@ namespace Keyboard.ShopProject.Controllers
                 }
             }
             return BadRequest("Missing client Id");
-        }
-
-        [AllowAnonymous]
-        [HttpPost(nameof(CreateUser))]
-        public async Task<IActionResult> CreateUser(int clientId)
-        {
-            if (clientId != null)
-            {
-                return BadRequest($"Enter clientId");
-            }
-            return Ok();
         }
     }
 }

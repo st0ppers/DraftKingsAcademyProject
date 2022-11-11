@@ -39,7 +39,6 @@ namespace Keyboard.BL.CommandHandler
                 Client = result,
                 Message = $"Successfully updated client with id {result.ClientID}"
             };
-
         }
     }
 }

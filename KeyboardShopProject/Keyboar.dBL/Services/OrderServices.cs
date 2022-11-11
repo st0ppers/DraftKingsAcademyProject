@@ -38,6 +38,7 @@ namespace Keyboard.BL.Services
             {
                 order.TotalPrice += k.Price;
             }
+
             return new OrderResponse()
             {
                 StatusCode = HttpStatusCode.OK,
@@ -49,7 +50,8 @@ namespace Keyboard.BL.Services
         {
             var shoppingCart = await _shoppingCartMongoRepository.GetContent(clientId);
             var order = _mapper.Map<OrderModel>(shoppingCart);
-            order.Date=DateTime.Now;
+            order.Date = DateTime.Now;
+
             if (shoppingCart == null)
             {
                 return new OrderResponse()
@@ -58,6 +60,7 @@ namespace Keyboard.BL.Services
                     Message = "Your shopping cart is empty"
                 };
             }
+
             if (await _clientSqlRepository.GetById(shoppingCart.ClientId) == null)
             {
                 return new OrderResponse()
@@ -66,6 +69,7 @@ namespace Keyboard.BL.Services
                     Message = "Client with that id doesn't exist"
                 };
             }
+
             foreach (var k in order.Keyboards)
             {
                 if (await _keyboardSqlRepository.GetById(k.KeyboardID) == null)
@@ -80,7 +84,7 @@ namespace Keyboard.BL.Services
 
             var report = _mapper.Map<KafkaReportModelForOrder>(order);
             await _repository.CreateOrder(order);
-            _producer.Produce(report.OrderID, report, _producer.Settings.CurrentValue.Topic, _producer.Config);
+            await _producer.Produce(report.OrderID, report, _producer.Settings.CurrentValue.Topic, _producer.Config);
             await _shoppingCartMongoRepository.EmptyShoppingCart(clientId);
             return new OrderResponse()
             {
@@ -100,6 +104,7 @@ namespace Keyboard.BL.Services
                     Message = "Order with that id doesn't exist"
                 };
             }
+
             await _repository.UpdateOrder(order);
             foreach (var k in order.Keyboards)
             {
@@ -114,6 +119,14 @@ namespace Keyboard.BL.Services
 
         public async Task<OrderResponse> DeleteOrder(Guid id)
         {
+            if (await _repository.GetOrder(id) == null)
+            {
+                return new OrderResponse()
+                {
+                    StatusCode = HttpStatusCode.NotFound,
+                    Message = "Order with that id doesn't exist"
+                };
+            }
             var order = await _repository.DeleteOrder(id);
             return new OrderResponse()
             {

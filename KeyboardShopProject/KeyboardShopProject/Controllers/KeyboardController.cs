@@ -53,6 +53,5 @@ namespace Keyboard.ShopProject.Controllers
             var response = await _services.DeleteKeyboard(id);
             return _check.CheckKeyboardResponse(response.StatusCode, response);
         }
-
     }
 }

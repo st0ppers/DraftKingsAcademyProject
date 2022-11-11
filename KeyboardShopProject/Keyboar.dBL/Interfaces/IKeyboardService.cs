@@ -12,6 +12,5 @@ namespace Keyboard.BL.Interfaces
         public Task<KeyboardResponse> CreateKeyboard(AddKeyboardRequest keyboard);
         public Task<KeyboardResponse> UpdateKeyboard(UpdateKeyboardRequest keyboard);
         public Task<KeyboardResponse> DeleteKeyboard(int id);
-
     }
 }
